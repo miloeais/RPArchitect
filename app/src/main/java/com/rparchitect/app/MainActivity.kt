@@ -405,6 +405,10 @@ fun RPArchitectApp() {
                     onDeleteProject = { projectId ->
                         coroutineScope.launch {
                             projectRepository.deleteProject(projectId)
+
+                            if (selectedProject?.id == projectId) {
+                                selectedProject = null
+                            }
                         }
                     }
                 )
