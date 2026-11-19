@@ -2,12 +2,23 @@
 package com.rparchitect.app.data.model
 
 import androidx.room.Entity
+import androidx.room.ForeignKey
 import androidx.room.Index
 import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "characters",
-    indices = [Index(value = ["projectId"])]
+    foreignKeys = [
+        ForeignKey(
+            entity = RPProject::class,
+            parentColumns = ["id"],
+            childColumns = ["projectId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
+    indices = [
+        Index(value = ["projectId"])
+    ]
 )
 data class RPCharacter(
     @PrimaryKey
