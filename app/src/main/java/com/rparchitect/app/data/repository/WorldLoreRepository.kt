@@ -1,38 +1,35 @@
+
 package com.rparchitect.app.data.repository
 
+import com.rparchitect.app.data.dao.WorldLoreDao
 import com.rparchitect.app.data.model.RPWorldLore
+import kotlinx.coroutines.flow.Flow
 
-class WorldLoreRepository {
+class WorldLoreRepository(
+    private val worldLoreDao: WorldLoreDao
+) {
 
-    private val worldLores = mutableListOf<RPWorldLore>()
-
-    fun getAllWorldLores(): List<RPWorldLore> {
-        return worldLores.toList()
+    fun getAllWorldLores(): Flow<List<RPWorldLore>> {
+        return worldLoreDao.getAllWorldLore()
     }
 
-    fun getWorldLoresByProject(projectId: Long): List<RPWorldLore> {
-        return worldLores.filter {
-            it.projectId == projectId
-        }
+    fun getWorldLoresByProject(projectId: Long): Flow<List<RPWorldLore>> {
+        return worldLoreDao.getWorldLoreByProject(projectId)
     }
 
-    fun addWorldLore(worldLore: RPWorldLore) {
-        worldLores.add(worldLore)
+    suspend fun getWorldLoreById(worldLoreId: Long): RPWorldLore? {
+        return worldLoreDao.getWorldLoreById(worldLoreId)
     }
 
-    fun updateWorldLore(worldLore: RPWorldLore) {
-        val index = worldLores.indexOfFirst {
-            it.id == worldLore.id
-        }
-
-        if (index != -1) {
-            worldLores[index] = worldLore
-        }
+    suspend fun addWorldLore(worldLore: RPWorldLore) {
+        worldLoreDao.insertWorldLore(worldLore)
     }
 
-    fun deleteWorldLore(worldLoreId: Long) {
-        worldLores.removeAll {
-            it.id == worldLoreId
-        }
+    suspend fun updateWorldLore(worldLore: RPWorldLore) {
+        worldLoreDao.updateWorldLore(worldLore)
+    }
+
+    suspend fun deleteWorldLore(worldLoreId: Long) {
+        worldLoreDao.deleteWorldLoreById(worldLoreId)
     }
 }
