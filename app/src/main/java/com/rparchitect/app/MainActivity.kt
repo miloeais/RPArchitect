@@ -13,11 +13,15 @@ import com.rparchitect.app.data.model.RPCharacter
 import com.rparchitect.app.data.model.RPWorldLore
 import com.rparchitect.app.data.model.RPWorldEntry
 import com.rparchitect.app.data.model.RPTemplate
+import com.rparchitect.app.data.model.RPTemplateField
+import com.rparchitect.app.data.model.RPCustomTemplate
+import com.rparchitect.app.data.model.TemplateFieldType
 import com.rparchitect.app.data.template.PresetLibrary
 import com.rparchitect.app.data.repository.ProjectRepository
 import com.rparchitect.app.data.repository.CharacterRepository
 import com.rparchitect.app.data.repository.WorldLoreRepository
 import com.rparchitect.app.data.repository.WorldEntryRepository
+import com.rparchitect.app.data.repository.CustomTemplateRepository
 import com.rparchitect.app.ui.screens.HomeScreen
 import com.rparchitect.app.ui.screens.ProjectManagerScreen
 import com.rparchitect.app.ui.screens.CreateProjectScreen
@@ -34,6 +38,7 @@ import com.rparchitect.app.ui.screens.CreateWorldEntryScreen
 import com.rparchitect.app.ui.screens.EditWorldEntryScreen
 import com.rparchitect.app.ui.screens.TemplateLibraryScreen
 import com.rparchitect.app.ui.screens.TemplateDetailScreen
+import com.rparchitect.app.ui.screens.CustomTemplateBuilderScreen
 import kotlinx.coroutines.launch
 
 private enum class AppScreen {
@@ -52,7 +57,8 @@ private enum class AppScreen {
     CREATE_WORLD_ENTRY,
     EDIT_WORLD_ENTRY,
     TEMPLATE_LIBRARY,
-    TEMPLATE_DETAIL
+    TEMPLATE_DETAIL,
+    CUSTOM_TEMPLATE_BUILDER
 }
 
 class MainActivity : ComponentActivity() {
@@ -92,6 +98,10 @@ fun RPArchitectApp() {
         WorldEntryRepository(database.worldEntryDao())
     }
 
+    val customTemplateRepository = remember(database) {
+        CustomTemplateRepository(database.customTemplateDao())
+    }
+
     val projects by projectRepository
         .getAllProjects()
         .collectAsState(initial = emptyList())
@@ -106,6 +116,10 @@ fun RPArchitectApp() {
 
     val allWorldEntries by worldEntryRepository
         .getAllEntries()
+        .collectAsState(initial = emptyList())
+
+    val customTemplates by customTemplateRepository
+        .getAllTemplates()
         .collectAsState(initial = emptyList())
 
     var currentScreen by remember {
@@ -132,6 +146,14 @@ fun RPArchitectApp() {
         mutableStateOf<RPTemplate?>(null)
     }
 
+    var selectedCustomTemplate by remember {
+        mutableStateOf<RPCustomTemplate?>(null)
+    }
+
+    var selectedCustomFields by remember {
+        mutableStateOf(emptyList<com.rparchitect.app.data.model.CustomTemplateFieldData>())
+    }
+
     val characters = allCharacters.filter {
         it.projectId == selectedProject?.id
     }
@@ -142,6 +164,16 @@ fun RPArchitectApp() {
 
     val worldEntries = allWorldEntries.filter {
         it.projectId == selectedProject?.id
+    }
+
+    val libraryTemplates = PresetLibrary.presets + customTemplates.map { template ->
+        RPTemplate(
+            id = "custom:${template.id}",
+            name = template.name,
+            description = template.description,
+            fields = emptyList(),
+            isCustom = true
+        )
     }
 
     fun createProject(
@@ -684,13 +716,67 @@ fun RPArchitectApp() {
 
             AppScreen.TEMPLATE_LIBRARY -> {
                 TemplateLibraryScreen(
-                    templates = PresetLibrary.presets,
+                    templates = libraryTemplates,
                     onBackClick = {
                         currentScreen = AppScreen.HOME
                     },
                     onTemplateClick = { template ->
-                        selectedTemplate = template
-                        currentScreen = AppScreen.TEMPLATE_DETAIL
+
+                        when {
+                            template.id.startsWith("custom:") -> {
+                                val customId = template.id.removePrefix("custom:")
+
+                                coroutineScope.launch {
+                                    val record = customTemplateRepository
+                                        .getTemplateById(customId)
+
+                                    if (record != null) {
+                                        val fieldData = customTemplateRepository
+                                            .getCompleteTemplate(customId)
+
+                                        val templateFields = fieldData.map { data ->
+                                            RPTemplateField(
+                                                id = data.field.id,
+                                                label = data.field.label,
+                                                type = runCatching {
+                                                    TemplateFieldType.valueOf(
+                                                        data.field.type
+                                                    )
+                                                }.getOrDefault(TemplateFieldType.TEXT),
+                                                required = data.field.required,
+                                                options = data.options.map {
+                                                    it.value
+                                                }
+                                            )
+                                        }
+
+                                        selectedTemplate = RPTemplate(
+                                            id = "custom:${record.id}",
+                                            name = record.name,
+                                            description = record.description,
+                                            fields = templateFields,
+                                            isCustom = true
+                                        )
+
+                                        currentScreen = AppScreen.TEMPLATE_DETAIL
+                                    }
+                                }
+                            }
+
+                            template.isCustom &&
+                                template.name == "Custom Template" &&
+                                template.fields.isEmpty() -> {
+
+                                selectedCustomTemplate = null
+                                selectedCustomFields = emptyList()
+                                currentScreen = AppScreen.CUSTOM_TEMPLATE_BUILDER
+                            }
+
+                            else -> {
+                                selectedTemplate = template
+                                currentScreen = AppScreen.TEMPLATE_DETAIL
+                            }
+                        }
                     }
                 )
             }
@@ -708,6 +794,28 @@ fun RPArchitectApp() {
                 } else {
                     currentScreen = AppScreen.TEMPLATE_LIBRARY
                 }
+            }
+
+            AppScreen.CUSTOM_TEMPLATE_BUILDER -> {
+                CustomTemplateBuilderScreen(
+                    existingTemplate = selectedCustomTemplate,
+                    existingFields = selectedCustomFields,
+                    onBack = {
+                        currentScreen = AppScreen.TEMPLATE_LIBRARY
+                    },
+                    onSave = { template, fields ->
+                        coroutineScope.launch {
+                            customTemplateRepository.saveCompleteTemplate(
+                                template,
+                                fields
+                            )
+
+                            selectedCustomTemplate = null
+                            selectedCustomFields = emptyList()
+                            currentScreen = AppScreen.TEMPLATE_LIBRARY
+                        }
+                    }
+                )
             }
         }
     }
