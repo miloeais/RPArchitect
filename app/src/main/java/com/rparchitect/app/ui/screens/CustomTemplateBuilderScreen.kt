@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -14,13 +15,18 @@ import com.rparchitect.app.data.model.RPCustomTemplateOption
 import com.rparchitect.app.data.model.TemplateFieldType
 import java.util.UUID
 
-private data class BuilderFieldState(
+private class BuilderFieldState(
     val id: String = UUID.randomUUID().toString(),
-    var label: String = "",
-    var type: TemplateFieldType = TemplateFieldType.TEXT,
-    var required: Boolean = false,
-    var options: String = ""
-)
+    label: String = "",
+    type: TemplateFieldType = TemplateFieldType.TEXT,
+    required: Boolean = false,
+    options: String = ""
+) {
+    var label by mutableStateOf(label)
+    var type by mutableStateOf(type)
+    var required by mutableStateOf(required)
+    var options by mutableStateOf(options)
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -169,8 +175,7 @@ fun CustomTemplateBuilderScreen(
                         }
                     ) {
                         OutlinedTextField(
-                            value = field.type.name
-                                .replace("_", " "),
+                            value = field.type.name.replace("_", " "),
                             onValueChange = {},
                             readOnly = true,
                             label = { Text("Field Type") },
@@ -193,13 +198,12 @@ fun CustomTemplateBuilderScreen(
                             TemplateFieldType.entries.forEach { type ->
                                 DropdownMenuItem(
                                     text = {
-                                        Text(
-                                            type.name.replace("_", " ")
-                                        )
+                                        Text(type.name.replace("_", " "))
                                     },
                                     onClick = {
                                         field.type = type
                                         typeExpanded = false
+
                                         if (type != TemplateFieldType.CATEGORY) {
                                             field.options = ""
                                         }
@@ -261,6 +265,16 @@ fun CustomTemplateBuilderScreen(
 
         Button(
             onClick = {
+                val categoryOptions = fields
+                    .filter { it.type == TemplateFieldType.CATEGORY }
+                    .map { field ->
+                        field.options
+                            .split(",")
+                            .map { it.trim() }
+                            .filter { it.isNotBlank() }
+                            .distinct()
+                    }
+
                 when {
                     templateName.isBlank() -> {
                         errorMessage = "Template name is required."
@@ -274,12 +288,7 @@ fun CustomTemplateBuilderScreen(
                         errorMessage = "Every field needs a name."
                     }
 
-                    fields.any {
-                        it.type == TemplateFieldType.CATEGORY &&
-                            it.options.split(",").none { option ->
-                                option.isNotBlank()
-                            }
-                    } -> {
+                    categoryOptions.any { it.isEmpty() } -> {
                         errorMessage =
                             "Every category field needs at least one option."
                     }
@@ -296,7 +305,7 @@ fun CustomTemplateBuilderScreen(
                             updatedAt = now
                         )
 
-                        val fieldData = fields.mapIndexed { index, item ->
+                        val fieldData = fields.map { item ->
 
                             val fieldId = item.id
 
