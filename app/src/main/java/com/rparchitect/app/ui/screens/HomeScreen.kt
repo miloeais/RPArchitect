@@ -23,7 +23,9 @@ private val SecondaryText = Color(0xFF9A9BA8)
 @Composable
 fun HomeScreen(
     onProjectsClick: () -> Unit,
-    onTemplatesClick: () -> Unit
+    onTemplatesClick: () -> Unit,
+    onSettingsClick: () -> Unit = {},
+    onRecentProjectsClick: () -> Unit = {}
 ) {
     val haptic = LocalHapticFeedback.current
 
