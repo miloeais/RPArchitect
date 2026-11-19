@@ -27,6 +27,7 @@ fun ProjectManagerScreen(
     onBackClick: () -> Unit,
     onCreateProject: () -> Unit,
     onProjectClick: (RPProject) -> Unit,
+    onEditProject: (RPProject) -> Unit,
     onDeleteProject: (Long) -> Unit
 ) {
     var menuProject by remember { mutableStateOf<RPProject?>(null) }
@@ -194,7 +195,7 @@ fun ProjectManagerScreen(
                                         text = { Text("Edit") },
                                         onClick = {
                                             menuProject = null
-                                            onProjectClick(project)
+                                            onEditProject(project)
                                         }
                                     )
 
