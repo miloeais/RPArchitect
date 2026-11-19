@@ -9,6 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -21,42 +23,31 @@ private val SecondaryText = Color(0xFF9A9BA8)
 @Composable
 fun HomeScreen(
     onProjectsClick: () -> Unit,
-    onTemplatesClick: () -> Unit,
-    onSettingsClick: () -> Unit,
-    onRecentProjectsClick: () -> Unit
+    onTemplatesClick: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+
     Column(
         modifier = Modifier
             .fillMaxSize()
             .background(BackgroundDark)
             .padding(20.dp)
     ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    "RP ARCHITECT",
-                    color = Color.White,
-                    fontSize = 21.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    letterSpacing = 1.5.sp
-                )
 
-                Text(
-                    "ROLEPLAY WORLD BUILDER",
-                    color = AccentColor,
-                    fontSize = 9.sp,
-                    letterSpacing = 2.sp
-                )
-            }
+        Text(
+            "RP ARCHITECT",
+            color = Color.White,
+            fontSize = 21.sp,
+            fontWeight = FontWeight.ExtraBold,
+            letterSpacing = 1.5.sp
+        )
 
-            IconButton(onClick = onSettingsClick) {
-                Text("⚙", fontSize = 24.sp, color = Color.White)
-            }
-        }
+        Text(
+            "ROLEPLAY WORLD BUILDER",
+            color = AccentColor,
+            fontSize = 9.sp,
+            letterSpacing = 2.sp
+        )
 
         Spacer(modifier = Modifier.height(38.dp))
 
@@ -109,28 +100,39 @@ fun HomeScreen(
             onClick = onTemplatesClick
         )
 
-        Spacer(modifier = Modifier.height(12.dp))
-
-        DashboardCard(
-            title = "Recent Projects",
-            description = "Continue working on your recent stories",
-            symbol = "◷",
-            onClick = onRecentProjectsClick
-        )
-
         Spacer(modifier = Modifier.weight(1f))
 
         HorizontalDivider(color = CardDark)
 
-        Spacer(modifier = Modifier.height(14.dp))
+        Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            "YOUR STORIES. YOUR WORLDS. YOUR RULES.",
-            color = SecondaryText,
-            fontSize = 9.sp,
-            letterSpacing = 1.2.sp,
-            modifier = Modifier.align(Alignment.CenterHorizontally)
-        )
+        TextButton(
+            onClick = {
+                haptic.performHapticFeedback(
+                    HapticFeedbackType.LongPress
+                )
+            }
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Text(
+                    "RP ARCHITECT",
+                    color = Color.White,
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 1.5.sp
+                )
+
+                Spacer(modifier = Modifier.height(3.dp))
+
+                Text(
+                    "Developed by MiloEAIS",
+                    color = SecondaryText,
+                    fontSize = 10.sp
+                )
+            }
+        }
     }
 }
 
