@@ -54,8 +54,51 @@ fun CreateWorldEntryScreen(
     var typeExpanded by remember { mutableStateOf(false) }
     var parentExpanded by remember { mutableStateOf(false) }
 
-    val parentOptions = entries.filter {
-        it.type != "Headquarters"
+    val parentOptions = remember(entries) {
+        val result = mutableListOf<Pair<RPWorldEntry, Int>>()
+        val visited = mutableSetOf<Long>()
+
+        val entriesByParent = entries
+            .filter { it.type != "Headquarters" }
+            .groupBy { it.parentId }
+
+        val validIds = entriesByParent.values
+            .flatten()
+            .map { it.id }
+            .toSet()
+
+        val roots = entries.filter {
+            it.type != "Headquarters" &&
+                (it.parentId == null || it.parentId !in validIds)
+        }
+
+        fun addChildren(parentId: Long?, depth: Int) {
+            val children = if (parentId == null) {
+                roots
+            } else {
+                entriesByParent[parentId].orEmpty()
+            }
+
+            children.forEach { entry ->
+                if (visited.add(entry.id)) {
+                    result.add(entry to depth)
+                    addChildren(entry.id, depth + 1)
+                }
+            }
+        }
+
+        addChildren(null, 0)
+
+        entries.forEach { entry ->
+            if (
+                entry.type != "Headquarters" &&
+                entry.id !in visited
+            ) {
+                result.add(entry to 0)
+            }
+        }
+
+        result
     }
 
     Scaffold(
@@ -137,8 +180,10 @@ fun CreateWorldEntryScreen(
             ) {
                 OutlinedTextField(
                     value = parentOptions.firstOrNull {
-                        it.id == parentId
-                    }?.name ?: "None (Root Entry)",
+                        it.first.id == parentId
+                    }?.let {
+                        "${it.first.name} (${it.first.type})"
+                    } ?: "None (Root Entry)",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Parent Entry") },
@@ -168,10 +213,12 @@ fun CreateWorldEntryScreen(
                         }
                     )
 
-                    parentOptions.forEach { entry ->
+                    parentOptions.forEach { (entry, depth) ->
                         DropdownMenuItem(
                             text = {
-                                Text("${entry.name} (${entry.type})")
+                                Text(
+                                    "${"   ".repeat(depth)}${entry.name} (${entry.type})"
+                                )
                             },
                             onClick = {
                                 parentId = entry.id
