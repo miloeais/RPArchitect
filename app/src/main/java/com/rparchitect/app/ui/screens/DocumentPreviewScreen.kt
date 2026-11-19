@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rparchitect.app.data.export.DocumentPreviewField
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DocumentPreviewScreen(
     title: String,
