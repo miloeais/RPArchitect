@@ -2,24 +2,24 @@
 package com.rparchitect.app
 
 import android.os.Bundle
+import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.rparchitect.app.data.database.DatabaseProvider
+import com.rparchitect.app.data.export.DocumentMarkdownExporter
+import com.rparchitect.app.data.export.DocumentPreviewField
 import com.rparchitect.app.data.model.*
-import com.rparchitect.app.data.template.PresetLibrary
 import com.rparchitect.app.data.repository.*
+import com.rparchitect.app.data.template.PresetLibrary
 import com.rparchitect.app.ui.screens.*
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.util.UUID
-import androidx.activity.compose.rememberLauncherForActivityResult
-import androidx.activity.result.contract.ActivityResultContracts
-import android.widget.Toast
-import com.rparchitect.app.data.export.DocumentPreviewField
-import com.rparchitect.app.data.export.DocumentMarkdownExporter
 
 private enum class AppScreen {
     HOME,
@@ -61,35 +61,42 @@ fun RPArchitectApp() {
 
     val context = LocalContext.current
     val coroutineScope = rememberCoroutineScope()
+
+    var markdownToExport by remember {
+        mutableStateOf("")
+    }
+
     val exportLauncher = rememberLauncherForActivityResult(
-    contract = ActivityResultContracts.CreateDocument("text/markdown")
-) { uri ->
+        contract = ActivityResultContracts.CreateDocument("text/markdown")
+    ) { uri ->
 
-    if (uri != null) {
+        if (uri != null) {
 
-        runCatching {
-            val outputStream = context.contentResolver
-                .openOutputStream(uri)
-                ?: error("Unable to open file")
+            runCatching {
+                val outputStream = context.contentResolver
+                    .openOutputStream(uri)
+                    ?: error("Unable to open file")
 
-            outputStream.bufferedWriter().use {
-                it.write(markdownToExport)
+                outputStream.bufferedWriter().use {
+                    it.write(markdownToExport)
+                }
+
+            }.onSuccess {
+                Toast.makeText(
+                    context,
+                    "Markdown exported successfully",
+                    Toast.LENGTH_SHORT
+                ).show()
+
+            }.onFailure {
+                Toast.makeText(
+                    context,
+                    "Export failed: ${it.message}",
+                    Toast.LENGTH_LONG
+                ).show()
             }
-        }.onSuccess {
-            Toast.makeText(
-                context,
-                "Markdown exported successfully",
-                Toast.LENGTH_SHORT
-            ).show()
-        }.onFailure {
-            Toast.makeText(
-                context,
-                "Export failed: ${it.message}",
-                Toast.LENGTH_LONG
-            ).show()
         }
     }
-}
 
     val database = remember {
         DatabaseProvider.getDatabase(context)
@@ -192,13 +199,9 @@ fun RPArchitectApp() {
     var previewFields by remember {
         mutableStateOf<List<DocumentPreviewField>>(emptyList())
     }
-    
+
     var editorValues by remember {
         mutableStateOf<Map<String, String>>(emptyMap())
-    }
-    
-    var markdownToExport by remember {
-        mutableStateOf("")
     }
 
     // PROJECT DATA
@@ -557,6 +560,7 @@ fun RPArchitectApp() {
             selectedDocument = document
             documentFields = fields
             documentTitle = document.title
+
             editorValues = fields.associate {
                 it.fieldId to it.value
             }
@@ -622,6 +626,8 @@ fun RPArchitectApp() {
             selectedDocument = null
             documentFields = emptyList()
             documentTemplate = null
+            editorValues = emptyMap()
+            previewFields = emptyList()
 
             currentScreen = AppScreen.DOCUMENTS
         }
@@ -1108,9 +1114,9 @@ fun RPArchitectApp() {
 
             AppScreen.DOCUMENT_EDITOR -> {
                 val template = documentTemplate
-                
+
                 if (template != null) {
-                    
+
                     DocumentEditorScreen(
                         documentTitle = documentTitle,
                         template = template,
@@ -1123,15 +1129,16 @@ fun RPArchitectApp() {
                             }
                         },
                         onPreview = { values ->
-                            
+
                             editorValues = values
-                            
+
                             previewFields = template.fields.map { field ->
                                 DocumentPreviewField(
                                     label = field.label,
                                     value = values[field.id].orEmpty()
                                 )
                             }
+
                             currentScreen = AppScreen.DOCUMENT_PREVIEW
                         },
                         onSave = { values ->
@@ -1140,33 +1147,36 @@ fun RPArchitectApp() {
                     )
                 }
             }
+
             AppScreen.DOCUMENT_PREVIEW -> {
+                val template = documentTemplate
 
-    val template = documentTemplate
+                if (template != null) {
 
-    if (template != null) {
+                    DocumentPreviewScreen(
+                        title = documentTitle,
+                        templateName = template.name,
+                        fields = previewFields,
+                        onBackClick = {
+                            currentScreen = AppScreen.DOCUMENT_EDITOR
+                        },
+                        onExportMarkdown = {
 
-        DocumentPreviewScreen(
-            title = documentTitle,
-            templateName = template.name,
-            fields = previewFields,
-            onBackClick = {
-                currentScreen = AppScreen.DOCUMENT_EDITOR
-            },
-            onExportMarkdown = {
+                            markdownToExport = DocumentMarkdownExporter.generate(
+                                title = documentTitle,
+                                templateName = template.name,
+                                fields = previewFields
+                            )
 
-                markdownToExport = DocumentMarkdownExporter.generate(
-                    title = documentTitle,
-                    templateName = template.name,
-                    fields = previewFields
-                )
+                            val fileName = documentTitle
+                                .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                                .ifBlank { "RP_Document" }
 
-                val fileName = documentTitle
-                    .replace(Regex("[\\\\/:*?\"<>|]"), "_")
-                    .ifBlank { "RP_Document" }
-
-                exportLauncher.launch("$fileName.md")
+                            exportLauncher.launch("$fileName.md")
+                        }
+                    )
+                }
             }
-        )
+        }
     }
 }
