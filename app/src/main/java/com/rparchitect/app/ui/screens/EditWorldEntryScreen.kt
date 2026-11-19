@@ -55,9 +55,36 @@ fun EditWorldEntryScreen(
         "Headquarters"
     )
 
-    val parentOptions = entries.filter {
-        it.id != entry.id &&
-            it.type != "Headquarters"
+    // Cari semua keturunan entry secara recursive.
+    val descendantIds = remember(entry.id, entries) {
+        val descendants = mutableSetOf<Long>()
+
+        fun collectChildren(parentId: Long) {
+            entries
+                .filter { it.parentId == parentId }
+                .forEach { child ->
+                    if (descendants.add(child.id)) {
+                        collectChildren(child.id)
+                    }
+                }
+        }
+
+        collectChildren(entry.id)
+        descendants
+    }
+
+    // Parent tidak boleh menjadi diri sendiri atau keturunan sendiri.
+    val parentOptions = remember(entries, entry.id, descendantIds) {
+        entries.filter {
+            it.id != entry.id &&
+                it.id !in descendantIds &&
+                it.type != "Headquarters"
+        }
+    }
+
+    // Pastikan parent sedia ada masih sah.
+    val validParentId = parentId?.takeIf { id ->
+        parentOptions.any { it.id == id }
     }
 
     Scaffold(
@@ -139,8 +166,10 @@ fun EditWorldEntryScreen(
             ) {
                 OutlinedTextField(
                     value = parentOptions.firstOrNull {
-                        it.id == parentId
-                    }?.name ?: "None (Root Entry)",
+                        it.id == validParentId
+                    }?.let {
+                        "${it.name} (${it.type})"
+                    } ?: "None (Root Entry)",
                     onValueChange = {},
                     readOnly = true,
                     label = { Text("Parent Entry") },
@@ -246,7 +275,7 @@ fun EditWorldEntryScreen(
                 onClick = {
                     if (name.isNotBlank()) {
                         onUpdateClick(
-                            parentId,
+                            validParentId,
                             name.trim(),
                             type,
                             description.trim(),
