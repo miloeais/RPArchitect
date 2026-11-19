@@ -10,12 +10,14 @@ import com.rparchitect.app.ui.screens.HomeScreen
 import com.rparchitect.app.ui.screens.ProjectManagerScreen
 import com.rparchitect.app.ui.screens.CreateProjectScreen
 import com.rparchitect.app.ui.screens.EditProjectScreen
+import com.rparchitect.app.ui.screens.WorkspaceScreen
 
 private enum class AppScreen {
     HOME,
     PROJECTS,
     CREATE_PROJECT,
-    EDIT_PROJECT
+    EDIT_PROJECT,
+    WORKSPACE
 }
 
 class MainActivity : ComponentActivity() {
@@ -110,25 +112,29 @@ fun RPArchitectApp() {
                 )
             }
 
-             AppScreen.PROJECTS -> {
-                 ProjectManagerScreen(
-                     projects = projects,
-                     onBackClick = {
-                         currentScreen = AppScreen.HOME
-                     },
-                 onCreateProject = {
-                     currentScreen = AppScreen.CREATE_PROJECT
-                     },
-                 onProjectClick = { project ->
-                     selectedProject = project
-                     currentScreen = AppScreen.EDIT_PROJECT
-                     },
-                 onDeleteProject = { projectId ->
-                     repository.deleteProject(projectId)
-                     refreshProjects()
-                     }
-                 )
-           }
+            AppScreen.PROJECTS -> {
+                ProjectManagerScreen(
+                    projects = projects,
+                    onBackClick = {
+                        currentScreen = AppScreen.HOME
+                    },
+                    onCreateProject = {
+                        currentScreen = AppScreen.CREATE_PROJECT
+                    },
+                    onProjectClick = { project ->
+                        selectedProject = project
+                        currentScreen = AppScreen.WORKSPACE
+                    },
+                    onEditProject = { project ->
+                        selectedProject = project
+                        currentScreen = AppScreen.EDIT_PROJECT
+                    },
+                    onDeleteProject = { projectId ->
+                        repository.deleteProject(projectId)
+                        refreshProjects()
+                    }
+                )
+            }
 
             AppScreen.CREATE_PROJECT -> {
                 CreateProjectScreen(
@@ -153,6 +159,22 @@ fun RPArchitectApp() {
                         onSaveClick = { name, description, genre ->
                             updateProject(name, description, genre)
                         }
+                    )
+                }
+            }
+
+            AppScreen.WORKSPACE -> {
+                val project = selectedProject
+
+                if (project != null) {
+                    WorkspaceScreen(
+                        project = project,
+                        onBackClick = {
+                            currentScreen = AppScreen.PROJECTS
+                        },
+                        onCharactersClick = {},
+                        onWorldBuildingClick = {},
+                        onStoryClick = {}
                     )
                 }
             }
