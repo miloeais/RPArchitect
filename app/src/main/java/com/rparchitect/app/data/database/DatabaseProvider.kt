@@ -1,4 +1,3 @@
-
 package com.rparchitect.app.data.database
 
 import android.content.Context
