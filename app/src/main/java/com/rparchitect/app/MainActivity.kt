@@ -41,15 +41,12 @@ private enum class AppScreen {
     CREATE_PROJECT,
     EDIT_PROJECT,
     WORKSPACE,
-
     CHARACTERS,
     CREATE_CHARACTER,
     EDIT_CHARACTER,
-
     WORLD_LORE,
     CREATE_WORLD_LORE,
     EDIT_WORLD_LORE,
-
     WORLD_ENTRIES,
     CREATE_WORLD_ENTRY,
     EDIT_WORLD_ENTRY
@@ -457,7 +454,10 @@ fun RPArchitectApp() {
                             refreshWorldLores(project.id)
                             currentScreen = AppScreen.WORLD_LORE
                         },
-                        onStoryClick = {}
+                        onLocationsFactionsClick = {
+                            refreshWorldEntries(project.id)
+                            currentScreen = AppScreen.WORLD_ENTRIES
+                        }
                     )
                 }
             }
