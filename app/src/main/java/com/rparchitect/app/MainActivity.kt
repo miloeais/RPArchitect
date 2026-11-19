@@ -8,8 +8,10 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import com.rparchitect.app.data.model.RPProject
 import com.rparchitect.app.data.model.RPCharacter
+import com.rparchitect.app.data.model.RPWorldLore
 import com.rparchitect.app.data.repository.ProjectRepository
 import com.rparchitect.app.data.repository.CharacterRepository
+import com.rparchitect.app.data.repository.WorldLoreRepository
 import com.rparchitect.app.ui.screens.HomeScreen
 import com.rparchitect.app.ui.screens.ProjectManagerScreen
 import com.rparchitect.app.ui.screens.CreateProjectScreen
@@ -18,6 +20,9 @@ import com.rparchitect.app.ui.screens.WorkspaceScreen
 import com.rparchitect.app.ui.screens.CharacterScreen
 import com.rparchitect.app.ui.screens.CreateCharacterScreen
 import com.rparchitect.app.ui.screens.EditCharacterScreen
+import com.rparchitect.app.ui.screens.WorldLoreScreen
+import com.rparchitect.app.ui.screens.CreateWorldLoreScreen
+import com.rparchitect.app.ui.screens.EditWorldLoreScreen
 
 private enum class AppScreen {
     HOME,
@@ -27,7 +32,10 @@ private enum class AppScreen {
     WORKSPACE,
     CHARACTERS,
     CREATE_CHARACTER,
-    EDIT_CHARACTER
+    EDIT_CHARACTER,
+    WORLD_LORE,
+    CREATE_WORLD_LORE,
+    EDIT_WORLD_LORE
 }
 
 class MainActivity : ComponentActivity() {
@@ -52,12 +60,20 @@ fun RPArchitectApp() {
         CharacterRepository()
     }
 
+    val worldLoreRepository = remember {
+        WorldLoreRepository()
+    }
+
     var projects by remember {
         mutableStateOf(projectRepository.getAllProjects())
     }
 
     var characters by remember {
         mutableStateOf(emptyList<RPCharacter>())
+    }
+
+    var worldLores by remember {
+        mutableStateOf(emptyList<RPWorldLore>())
     }
 
     var currentScreen by remember {
@@ -72,12 +88,20 @@ fun RPArchitectApp() {
         mutableStateOf<RPCharacter?>(null)
     }
 
+    var selectedWorldLore by remember {
+        mutableStateOf<RPWorldLore?>(null)
+    }
+
     fun refreshProjects() {
         projects = projectRepository.getAllProjects()
     }
 
     fun refreshCharacters(projectId: Long) {
         characters = characterRepository.getCharactersByProject(projectId)
+    }
+
+    fun refreshWorldLores(projectId: Long) {
+        worldLores = worldLoreRepository.getWorldLoresByProject(projectId)
     }
 
     fun createProject(
@@ -186,6 +210,59 @@ fun RPArchitectApp() {
         currentScreen = AppScreen.CHARACTERS
     }
 
+    fun createWorldLore(
+        title: String,
+        history: String,
+        culture: String,
+        worldRules: String,
+        notes: String
+    ) {
+        val project = selectedProject ?: return
+        val now = System.currentTimeMillis()
+
+        val lore = RPWorldLore(
+            id = now,
+            projectId = project.id,
+            title = title,
+            history = history,
+            culture = culture,
+            worldRules = worldRules,
+            notes = notes,
+            createdAt = now,
+            updatedAt = now
+        )
+
+        worldLoreRepository.addWorldLore(lore)
+        refreshWorldLores(project.id)
+        currentScreen = AppScreen.WORLD_LORE
+    }
+
+    fun updateWorldLore(
+        title: String,
+        history: String,
+        culture: String,
+        worldRules: String,
+        notes: String
+    ) {
+        val oldLore = selectedWorldLore ?: return
+        val project = selectedProject ?: return
+
+        val updatedLore = oldLore.copy(
+            title = title,
+            history = history,
+            culture = culture,
+            worldRules = worldRules,
+            notes = notes,
+            updatedAt = System.currentTimeMillis()
+        )
+
+        worldLoreRepository.updateWorldLore(updatedLore)
+        selectedWorldLore = updatedLore
+
+        refreshWorldLores(project.id)
+        currentScreen = AppScreen.WORLD_LORE
+    }
+
     MaterialTheme {
 
         when (currentScreen) {
@@ -215,6 +292,7 @@ fun RPArchitectApp() {
                     onProjectClick = { project ->
                         selectedProject = project
                         refreshCharacters(project.id)
+                        refreshWorldLores(project.id)
                         currentScreen = AppScreen.WORKSPACE
                     },
                     onEditProject = { project ->
@@ -268,7 +346,10 @@ fun RPArchitectApp() {
                             refreshCharacters(project.id)
                             currentScreen = AppScreen.CHARACTERS
                         },
-                        onWorldBuildingClick = {},
+                        onWorldBuildingClick = {
+                            refreshWorldLores(project.id)
+                            currentScreen = AppScreen.WORLD_LORE
+                        },
                         onStoryClick = {}
                     )
                 }
@@ -307,14 +388,8 @@ fun RPArchitectApp() {
                     onCreateClick = { name, role, age, gender,
                                       personality, background, appearance, notes ->
                         createCharacter(
-                            name,
-                            role,
-                            age,
-                            gender,
-                            personality,
-                            background,
-                            appearance,
-                            notes
+                            name, role, age, gender,
+                            personality, background, appearance, notes
                         )
                     }
                 )
@@ -332,14 +407,64 @@ fun RPArchitectApp() {
                         onSaveClick = { name, role, age, gender,
                                         personality, background, appearance, notes ->
                             updateCharacter(
-                                name,
-                                role,
-                                age,
-                                gender,
-                                personality,
-                                background,
-                                appearance,
-                                notes
+                                name, role, age, gender,
+                                personality, background, appearance, notes
+                            )
+                        }
+                    )
+                }
+            }
+
+            AppScreen.WORLD_LORE -> {
+                val project = selectedProject
+
+                if (project != null) {
+                    WorldLoreScreen(
+                        projectName = project.name,
+                        worldLores = worldLores,
+                        onBackClick = {
+                            currentScreen = AppScreen.WORKSPACE
+                        },
+                        onCreateLore = {
+                            currentScreen = AppScreen.CREATE_WORLD_LORE
+                        },
+                        onEditLore = { lore ->
+                            selectedWorldLore = lore
+                            currentScreen = AppScreen.EDIT_WORLD_LORE
+                        },
+                        onDeleteLore = { loreId ->
+                            worldLoreRepository.deleteWorldLore(loreId)
+                            refreshWorldLores(project.id)
+                        }
+                    )
+                }
+            }
+
+            AppScreen.CREATE_WORLD_LORE -> {
+                CreateWorldLoreScreen(
+                    onBackClick = {
+                        currentScreen = AppScreen.WORLD_LORE
+                    },
+                    onCreateClick = { title, history, culture, rules, notes ->
+                        createWorldLore(
+                            title, history, culture, rules, notes
+                        )
+                    }
+                )
+            }
+
+            AppScreen.EDIT_WORLD_LORE -> {
+                val lore = selectedWorldLore
+
+                if (lore != null) {
+                    EditWorldLoreScreen(
+                        worldLore = lore,
+                        onBackClick = {
+                            currentScreen = AppScreen.WORLD_LORE
+                        },
+                        onSaveClick = { title, history, culture, rules, notes ->
+                            updateWorldLore(
+                                title, history, culture, rules, notes
                             )
                         }
                     )
