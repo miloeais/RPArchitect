@@ -5,6 +5,7 @@ import androidx.room.Database
 import androidx.room.RoomDatabase
 import com.rparchitect.app.data.dao.CharacterDao
 import com.rparchitect.app.data.dao.CustomTemplateDao
+import com.rparchitect.app.data.dao.DocumentDao
 import com.rparchitect.app.data.dao.ProjectDao
 import com.rparchitect.app.data.dao.WorldEntryDao
 import com.rparchitect.app.data.dao.WorldLoreDao
@@ -44,4 +45,6 @@ abstract class RPArchitectDatabase : RoomDatabase() {
     abstract fun worldEntryDao(): WorldEntryDao
 
     abstract fun customTemplateDao(): CustomTemplateDao
+
+    abstract fun documentDao(): DocumentDao
 }
