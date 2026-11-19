@@ -1,38 +1,35 @@
+
 package com.rparchitect.app.data.repository
 
+import com.rparchitect.app.data.dao.CharacterDao
 import com.rparchitect.app.data.model.RPCharacter
+import kotlinx.coroutines.flow.Flow
 
-class CharacterRepository {
+class CharacterRepository(
+    private val characterDao: CharacterDao
+) {
 
-    private val characters = mutableListOf<RPCharacter>()
-
-    fun getAllCharacters(): List<RPCharacter> {
-        return characters.toList()
+    fun getAllCharacters(): Flow<List<RPCharacter>> {
+        return characterDao.getAllCharacters()
     }
 
-    fun getCharactersByProject(projectId: Long): List<RPCharacter> {
-        return characters.filter {
-            it.projectId == projectId
-        }
+    fun getCharactersByProject(projectId: Long): Flow<List<RPCharacter>> {
+        return characterDao.getCharactersByProject(projectId)
     }
 
-    fun addCharacter(character: RPCharacter) {
-        characters.add(character)
+    suspend fun getCharacterById(characterId: Long): RPCharacter? {
+        return characterDao.getCharacterById(characterId)
     }
 
-    fun updateCharacter(character: RPCharacter) {
-        val index = characters.indexOfFirst {
-            it.id == character.id
-        }
-
-        if (index != -1) {
-            characters[index] = character
-        }
+    suspend fun addCharacter(character: RPCharacter) {
+        characterDao.insertCharacter(character)
     }
 
-    fun deleteCharacter(characterId: Long) {
-        characters.removeAll {
-            it.id == characterId
-        }
+    suspend fun updateCharacter(character: RPCharacter) {
+        characterDao.updateCharacter(character)
+    }
+
+    suspend fun deleteCharacter(characterId: Long) {
+        characterDao.deleteCharacterById(characterId)
     }
 }
