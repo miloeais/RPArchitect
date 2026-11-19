@@ -23,6 +23,7 @@ import com.rparchitect.app.data.repository.CharacterRepository
 import com.rparchitect.app.data.repository.WorldLoreRepository
 import com.rparchitect.app.data.repository.WorldEntryRepository
 import com.rparchitect.app.data.repository.CustomTemplateRepository
+import com.rparchitect.app.data.repository.DocumentRepository
 import com.rparchitect.app.ui.screens.HomeScreen
 import com.rparchitect.app.ui.screens.ProjectManagerScreen
 import com.rparchitect.app.ui.screens.CreateProjectScreen
@@ -101,6 +102,10 @@ fun RPArchitectApp() {
 
     val customTemplateRepository = remember(database) {
         CustomTemplateRepository(database.customTemplateDao())
+    }
+
+    val documentRepository = remember(database) {
+        DocumentRepository(database.documentDao())
     }
 
     val projects by projectRepository
