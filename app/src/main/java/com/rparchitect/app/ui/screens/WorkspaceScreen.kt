@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -24,7 +25,7 @@ fun WorkspaceScreen(
     onBackClick: () -> Unit,
     onCharactersClick: () -> Unit,
     onWorldBuildingClick: () -> Unit,
-    onStoryClick: () -> Unit
+    onLocationsFactionsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -94,8 +95,8 @@ fun WorkspaceScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         WorkspaceCard(
-            title = "World Building",
-            description = "Locations, factions, lore and settings",
+            title = "World Lore",
+            description = "History, culture and world rules",
             symbol = "◈",
             onClick = onWorldBuildingClick
         )
@@ -103,10 +104,10 @@ fun WorkspaceScreen(
         Spacer(modifier = Modifier.height(12.dp))
 
         WorkspaceCard(
-            title = "Story & Timeline",
-            description = "Organise events and story progression",
-            symbol = "▤",
-            onClick = onStoryClick
+            title = "Locations & Factions",
+            description = "Places, organizations and governments",
+            symbol = "⌖",
+            onClick = onLocationsFactionsClick
         )
     }
 }
