@@ -15,6 +15,7 @@ import com.rparchitect.app.data.model.RPWorldEntry
 import com.rparchitect.app.data.model.RPTemplate
 import com.rparchitect.app.data.model.RPTemplateField
 import com.rparchitect.app.data.model.RPCustomTemplate
+import com.rparchitect.app.data.model.CustomTemplateFieldData
 import com.rparchitect.app.data.model.TemplateFieldType
 import com.rparchitect.app.data.template.PresetLibrary
 import com.rparchitect.app.data.repository.ProjectRepository
@@ -151,7 +152,7 @@ fun RPArchitectApp() {
     }
 
     var selectedCustomFields by remember {
-        mutableStateOf(emptyList<com.rparchitect.app.data.model.CustomTemplateFieldData>())
+        mutableStateOf<List<CustomTemplateFieldData>>(emptyList())
     }
 
     val characters = allCharacters.filter {
@@ -750,6 +751,9 @@ fun RPArchitectApp() {
                                             )
                                         }
 
+                                        selectedCustomTemplate = record
+                                        selectedCustomFields = fieldData
+
                                         selectedTemplate = RPTemplate(
                                             id = "custom:${record.id}",
                                             name = record.name,
@@ -789,6 +793,26 @@ fun RPArchitectApp() {
                         template = template,
                         onBackClick = {
                             currentScreen = AppScreen.TEMPLATE_LIBRARY
+                        },
+                        onEditClick = {
+                            if (template.isCustom) {
+                                currentScreen = AppScreen.CUSTOM_TEMPLATE_BUILDER
+                            }
+                        },
+                        onDeleteClick = {
+                            val customId = selectedCustomTemplate?.id
+
+                            if (customId != null) {
+                                coroutineScope.launch {
+                                    customTemplateRepository.deleteTemplate(customId)
+
+                                    selectedCustomTemplate = null
+                                    selectedCustomFields = emptyList()
+                                    selectedTemplate = null
+
+                                    currentScreen = AppScreen.TEMPLATE_LIBRARY
+                                }
+                            }
                         }
                     )
                 } else {
@@ -812,6 +836,8 @@ fun RPArchitectApp() {
 
                             selectedCustomTemplate = null
                             selectedCustomFields = emptyList()
+                            selectedTemplate = null
+
                             currentScreen = AppScreen.TEMPLATE_LIBRARY
                         }
                     }
