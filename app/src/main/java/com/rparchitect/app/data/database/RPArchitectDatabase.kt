@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.data.database
 
 import androidx.room.Database
@@ -11,6 +12,8 @@ import com.rparchitect.app.data.model.RPCharacter
 import com.rparchitect.app.data.model.RPCustomTemplate
 import com.rparchitect.app.data.model.RPCustomTemplateField
 import com.rparchitect.app.data.model.RPCustomTemplateOption
+import com.rparchitect.app.data.model.RPDocument
+import com.rparchitect.app.data.model.RPDocumentField
 import com.rparchitect.app.data.model.RPProject
 import com.rparchitect.app.data.model.RPWorldEntry
 import com.rparchitect.app.data.model.RPWorldLore
@@ -23,7 +26,9 @@ import com.rparchitect.app.data.model.RPWorldLore
         RPWorldEntry::class,
         RPCustomTemplate::class,
         RPCustomTemplateField::class,
-        RPCustomTemplateOption::class
+        RPCustomTemplateOption::class,
+        RPDocument::class,
+        RPDocumentField::class
     ],
     version = 1,
     exportSchema = false
