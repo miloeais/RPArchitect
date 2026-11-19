@@ -1,59 +1,59 @@
 
 package com.rparchitect.app.data.repository
 
+import com.rparchitect.app.data.dao.WorldEntryDao
 import com.rparchitect.app.data.model.RPWorldEntry
+import kotlinx.coroutines.flow.Flow
 
-class WorldEntryRepository {
+class WorldEntryRepository(
+    private val worldEntryDao: WorldEntryDao
+) {
 
-    private val entries = mutableListOf<RPWorldEntry>()
-
-    fun getAllEntries(): List<RPWorldEntry> {
-        return entries.toList()
+    fun getAllEntries(): Flow<List<RPWorldEntry>> {
+        return worldEntryDao.getAllEntries()
     }
 
-    fun getEntriesByProject(projectId: Long): List<RPWorldEntry> {
-        return entries.filter {
-            it.projectId == projectId
+    fun getEntriesByProject(projectId: Long): Flow<List<RPWorldEntry>> {
+        return worldEntryDao.getEntriesByProject(projectId)
+    }
+
+    fun getEntriesByParent(parentId: Long?): Flow<List<RPWorldEntry>> {
+        return if (parentId == null) {
+            worldEntryDao.getRootEntries()
+        } else {
+            worldEntryDao.getEntriesByParent(parentId)
         }
     }
 
-    fun getEntriesByParent(parentId: Long?): List<RPWorldEntry> {
-        return entries.filter {
-            it.parentId == parentId
-        }
+    suspend fun getEntryById(entryId: Long): RPWorldEntry? {
+        return worldEntryDao.getEntryById(entryId)
     }
 
-    fun addEntry(entry: RPWorldEntry) {
-        entries.add(entry)
+    suspend fun addEntry(entry: RPWorldEntry) {
+        worldEntryDao.insertEntry(entry)
     }
 
-    fun updateEntry(entry: RPWorldEntry) {
-        val index = entries.indexOfFirst {
-            it.id == entry.id
-        }
-
-        if (index != -1) {
-            entries[index] = entry
-        }
+    suspend fun updateEntry(entry: RPWorldEntry) {
+        worldEntryDao.updateEntry(entry)
     }
 
-    fun deleteEntry(entryId: Long) {
+    suspend fun deleteEntry(entryId: Long) {
         val idsToDelete = mutableSetOf<Long>()
 
-        fun collectChildren(parentId: Long) {
+        suspend fun collectChildren(parentId: Long) {
             if (!idsToDelete.add(parentId)) return
 
-            entries
-                .filter { it.parentId == parentId }
-                .forEach { child ->
-                    collectChildren(child.id)
-                }
+            val children = worldEntryDao.getChildrenOnce(parentId)
+
+            children.forEach { child ->
+                collectChildren(child.id)
+            }
         }
 
         collectChildren(entryId)
 
-        entries.removeAll {
-            it.id in idsToDelete
+        if (idsToDelete.isNotEmpty()) {
+            worldEntryDao.deleteEntriesByIds(idsToDelete.toList())
         }
     }
 }
