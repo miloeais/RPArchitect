@@ -8,40 +8,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.rparchitect.app.data.database.DatabaseProvider
-import com.rparchitect.app.data.model.RPProject
-import com.rparchitect.app.data.model.RPCharacter
-import com.rparchitect.app.data.model.RPWorldLore
-import com.rparchitect.app.data.model.RPWorldEntry
-import com.rparchitect.app.data.model.RPTemplate
-import com.rparchitect.app.data.model.RPTemplateField
-import com.rparchitect.app.data.model.RPCustomTemplate
-import com.rparchitect.app.data.model.CustomTemplateFieldData
-import com.rparchitect.app.data.model.TemplateFieldType
+import com.rparchitect.app.data.model.*
 import com.rparchitect.app.data.template.PresetLibrary
-import com.rparchitect.app.data.repository.ProjectRepository
-import com.rparchitect.app.data.repository.CharacterRepository
-import com.rparchitect.app.data.repository.WorldLoreRepository
-import com.rparchitect.app.data.repository.WorldEntryRepository
-import com.rparchitect.app.data.repository.CustomTemplateRepository
-import com.rparchitect.app.data.repository.DocumentRepository
-import com.rparchitect.app.ui.screens.HomeScreen
-import com.rparchitect.app.ui.screens.ProjectManagerScreen
-import com.rparchitect.app.ui.screens.CreateProjectScreen
-import com.rparchitect.app.ui.screens.EditProjectScreen
-import com.rparchitect.app.ui.screens.WorkspaceScreen
-import com.rparchitect.app.ui.screens.CharacterScreen
-import com.rparchitect.app.ui.screens.CreateCharacterScreen
-import com.rparchitect.app.ui.screens.EditCharacterScreen
-import com.rparchitect.app.ui.screens.WorldLoreScreen
-import com.rparchitect.app.ui.screens.CreateWorldLoreScreen
-import com.rparchitect.app.ui.screens.EditWorldLoreScreen
-import com.rparchitect.app.ui.screens.WorldEntryScreen
-import com.rparchitect.app.ui.screens.CreateWorldEntryScreen
-import com.rparchitect.app.ui.screens.EditWorldEntryScreen
-import com.rparchitect.app.ui.screens.TemplateLibraryScreen
-import com.rparchitect.app.ui.screens.TemplateDetailScreen
-import com.rparchitect.app.ui.screens.CustomTemplateBuilderScreen
+import com.rparchitect.app.data.repository.*
+import com.rparchitect.app.ui.screens.*
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 private enum class AppScreen {
     HOME,
@@ -60,7 +33,10 @@ private enum class AppScreen {
     EDIT_WORLD_ENTRY,
     TEMPLATE_LIBRARY,
     TEMPLATE_DETAIL,
-    CUSTOM_TEMPLATE_BUILDER
+    CUSTOM_TEMPLATE_BUILDER,
+    DOCUMENTS,
+    CREATE_DOCUMENT,
+    DOCUMENT_EDITOR
 }
 
 class MainActivity : ComponentActivity() {
@@ -160,6 +136,26 @@ fun RPArchitectApp() {
         mutableStateOf<List<CustomTemplateFieldData>>(emptyList())
     }
 
+    // DOCUMENT STATE
+
+    var selectedDocument by remember {
+        mutableStateOf<RPDocument?>(null)
+    }
+
+    var documentTemplate by remember {
+        mutableStateOf<RPTemplate?>(null)
+    }
+
+    var documentFields by remember {
+        mutableStateOf<List<RPDocumentField>>(emptyList())
+    }
+
+    var documentTitle by remember {
+        mutableStateOf("")
+    }
+
+    // PROJECT DATA
+
     val characters = allCharacters.filter {
         it.projectId == selectedProject?.id
     }
@@ -172,6 +168,16 @@ fun RPArchitectApp() {
         it.projectId == selectedProject?.id
     }
 
+    val documentFlow = remember(selectedProject?.id) {
+        selectedProject?.id?.let {
+            documentRepository.getDocumentsByProject(it)
+        } ?: flowOf(emptyList())
+    }
+
+    val documents by documentFlow.collectAsState(
+        initial = emptyList()
+    )
+
     val libraryTemplates = PresetLibrary.presets + customTemplates.map { template ->
         RPTemplate(
             id = "custom:${template.id}",
@@ -181,6 +187,8 @@ fun RPArchitectApp() {
             isCustom = true
         )
     }
+
+    // PROJECT FUNCTIONS
 
     fun createProject(
         name: String,
@@ -224,6 +232,8 @@ fun RPArchitectApp() {
             currentScreen = AppScreen.PROJECTS
         }
     }
+
+    // CHARACTER FUNCTIONS
 
     fun createCharacter(
         name: String,
@@ -290,6 +300,8 @@ fun RPArchitectApp() {
         }
     }
 
+    // WORLD LORE FUNCTIONS
+
     fun createWorldLore(
         title: String,
         history: String,
@@ -342,6 +354,8 @@ fun RPArchitectApp() {
             currentScreen = AppScreen.WORLD_LORE
         }
     }
+
+    // WORLD ENTRY FUNCTIONS
 
     fun createWorldEntry(
         parentId: Long?,
@@ -415,6 +429,153 @@ fun RPArchitectApp() {
             currentScreen = AppScreen.WORLD_ENTRIES
         }
     }
+
+    // DOCUMENT FUNCTIONS
+
+    fun prepareNewDocument(
+        title: String,
+        template: RPTemplate
+    ) {
+        coroutineScope.launch {
+
+            var completeTemplate = template
+
+            if (template.id.startsWith("custom:")) {
+
+                val customId = template.id.removePrefix("custom:")
+
+                val record = customTemplateRepository
+                    .getTemplateById(customId)
+
+                if (record != null) {
+
+                    val fieldData = customTemplateRepository
+                        .getCompleteTemplate(customId)
+
+                    val fields = fieldData.map { data ->
+
+                        RPTemplateField(
+                            id = data.field.id,
+                            label = data.field.label,
+                            type = runCatching {
+                                TemplateFieldType.valueOf(data.field.type)
+                            }.getOrDefault(TemplateFieldType.TEXT),
+                            required = data.field.required,
+                            options = data.options
+                                .sortedBy { it.sortOrder }
+                                .map { it.value }
+                        )
+                    }
+
+                    completeTemplate = RPTemplate(
+                        id = "custom:${record.id}",
+                        name = record.name,
+                        description = record.description,
+                        fields = fields,
+                        isCustom = true
+                    )
+                }
+            }
+
+            selectedDocument = null
+            documentFields = emptyList()
+            documentTitle = title
+            documentTemplate = completeTemplate
+
+            currentScreen = AppScreen.DOCUMENT_EDITOR
+        }
+    }
+
+    fun openExistingDocument(document: RPDocument) {
+        coroutineScope.launch {
+
+            val fields = documentRepository
+                .getFieldsByDocument(document.id)
+
+            val templateFields = fields.map { field ->
+
+                RPTemplateField(
+                    id = field.fieldId,
+                    label = field.label,
+                    type = runCatching {
+                        TemplateFieldType.valueOf(field.type)
+                    }.getOrDefault(TemplateFieldType.TEXT),
+                    required = field.required,
+                    options = DocumentFieldMapper.decodeOptions(field.options)
+                )
+            }
+
+            selectedDocument = document
+            documentFields = fields
+            documentTitle = document.title
+
+            documentTemplate = RPTemplate(
+                id = document.templateId,
+                name = document.templateName,
+                description = "",
+                fields = templateFields,
+                isCustom = document.templateId.startsWith("custom:")
+            )
+
+            currentScreen = AppScreen.DOCUMENT_EDITOR
+        }
+    }
+
+    fun saveDocument(values: Map<String, String>) {
+        val project = selectedProject ?: return
+        val template = documentTemplate ?: return
+
+        val now = System.currentTimeMillis()
+        val oldDocument = selectedDocument
+
+        val documentId = oldDocument?.id
+            ?: UUID.randomUUID().toString()
+
+        val document = RPDocument(
+            id = documentId,
+            projectId = project.id,
+            templateId = template.id,
+            templateName = template.name,
+            title = documentTitle,
+            createdAt = oldDocument?.createdAt ?: now,
+            updatedAt = now
+        )
+
+        val fields = if (oldDocument != null) {
+
+            documentFields.map { field ->
+                field.copy(
+                    value = values[field.fieldId] ?: ""
+                )
+            }
+
+        } else {
+
+            DocumentFieldMapper.createSnapshot(
+                documentId = documentId,
+                template = template
+            ).map { field ->
+                field.copy(
+                    value = values[field.fieldId] ?: ""
+                )
+            }
+        }
+
+        coroutineScope.launch {
+            documentRepository.saveCompleteDocument(
+                document,
+                fields
+            )
+
+            selectedDocument = null
+            documentFields = emptyList()
+            documentTemplate = null
+
+            currentScreen = AppScreen.DOCUMENTS
+        }
+    }
+
+    // UI
 
     MaterialTheme {
 
@@ -508,6 +669,9 @@ fun RPArchitectApp() {
                         },
                         onLocationsFactionsClick = {
                             currentScreen = AppScreen.WORLD_ENTRIES
+                        },
+                        onDocumentsClick = {
+                            currentScreen = AppScreen.DOCUMENTS
                         }
                     )
                 }
@@ -720,6 +884,8 @@ fun RPArchitectApp() {
                 }
             }
 
+            // TEMPLATE LIBRARY
+
             AppScreen.TEMPLATE_LIBRARY -> {
                 TemplateLibraryScreen(
                     templates = libraryTemplates,
@@ -750,9 +916,9 @@ fun RPArchitectApp() {
                                                     )
                                                 }.getOrDefault(TemplateFieldType.TEXT),
                                                 required = data.field.required,
-                                                options = data.options.map {
-                                                    it.value
-                                                }
+                                                options = data.options
+                                                    .sortedBy { it.sortOrder }
+                                                    .map { it.value }
                                             )
                                         }
 
@@ -847,6 +1013,77 @@ fun RPArchitectApp() {
                         }
                     }
                 )
+            }
+
+            // DOCUMENT ENGINE
+
+            AppScreen.DOCUMENTS -> {
+                val project = selectedProject
+
+                if (project != null) {
+                    DocumentScreen(
+                        projectName = project.name,
+                        documents = documents,
+                        onBackClick = {
+                            currentScreen = AppScreen.WORKSPACE
+                        },
+                        onCreateDocument = {
+                            currentScreen = AppScreen.CREATE_DOCUMENT
+                        },
+                        onDocumentClick = { document ->
+                            openExistingDocument(document)
+                        },
+                        onDeleteDocument = { documentId ->
+                            coroutineScope.launch {
+                                documentRepository.deleteDocument(documentId)
+                            }
+                        }
+                    )
+                }
+            }
+
+            AppScreen.CREATE_DOCUMENT -> {
+                CreateDocumentScreen(
+                    templates = libraryTemplates,
+                    onBackClick = {
+                        currentScreen = AppScreen.DOCUMENTS
+                    },
+                    onContinue = { title, template ->
+                        prepareNewDocument(title, template)
+                    }
+                )
+            }
+
+            AppScreen.DOCUMENT_EDITOR -> {
+                val template = documentTemplate
+
+                if (template != null) {
+
+                    val initialValues = remember(
+                        documentFields,
+                        selectedDocument
+                    ) {
+                        documentFields.associate {
+                            it.fieldId to it.value
+                        }
+                    }
+
+                    DocumentEditorScreen(
+                        documentTitle = documentTitle,
+                        template = template,
+                        initialValues = initialValues,
+                        onBackClick = {
+                            currentScreen = if (selectedDocument == null) {
+                                AppScreen.CREATE_DOCUMENT
+                            } else {
+                                AppScreen.DOCUMENTS
+                            }
+                        },
+                        onSave = { values ->
+                            saveDocument(values)
+                        }
+                    )
+                }
             }
         }
     }
