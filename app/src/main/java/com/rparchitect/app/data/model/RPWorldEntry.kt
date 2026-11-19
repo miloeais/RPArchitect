@@ -1,6 +1,19 @@
+
 package com.rparchitect.app.data.model
 
+import androidx.room.Entity
+import androidx.room.Index
+import androidx.room.PrimaryKey
+
+@Entity(
+    tableName = "world_entries",
+    indices = [
+        Index(value = ["projectId"]),
+        Index(value = ["parentId"])
+    ]
+)
 data class RPWorldEntry(
+    @PrimaryKey
     val id: Long,
     val projectId: Long,
     val parentId: Long?,
