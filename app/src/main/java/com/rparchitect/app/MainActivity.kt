@@ -1108,6 +1108,14 @@ fun RPArchitectApp() {
             AppScreen.CREATE_DOCUMENT -> {
                 CreateDocumentScreen(
                     templates = libraryTemplates,
+                    title = newDocumentTitle,
+                    selectedTemplate = newDocumentTemplate,
+                    onTitleChange = {
+                        newDocumentTitle = it
+                    },
+                    onTemplateSelected = {
+                        newDocumentTemplate = it
+                    },
                     onBackClick = {
                         currentScreen = AppScreen.DOCUMENTS
                     },
