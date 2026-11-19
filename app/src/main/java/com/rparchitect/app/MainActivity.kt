@@ -14,6 +14,7 @@ import com.rparchitect.app.data.database.DatabaseProvider
 import com.rparchitect.app.data.export.DocumentMarkdownExporter
 import com.rparchitect.app.data.export.DocumentPreviewField
 import com.rparchitect.app.data.model.*
+import com.rparchitect.app.data.model.RPTemplate
 import com.rparchitect.app.data.repository.*
 import com.rparchitect.app.data.template.PresetLibrary
 import com.rparchitect.app.ui.screens.*
