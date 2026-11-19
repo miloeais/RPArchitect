@@ -54,7 +54,7 @@ fun WorldEntryScreen(
         entries.map { it.id }.toSet()
     }
 
-    val rootEntries = remember(entries) {
+    val rootEntries = remember(entries, validIds) {
         entries.filter {
             it.parentId == null || it.parentId !in validIds
         }
@@ -62,7 +62,9 @@ fun WorldEntryScreen(
 
     val visibleEntries = remember(
         entries,
-        expandedEntries.toList()
+        expandedEntries.toList(),
+        rootEntries,
+        entriesByParent
     ) {
         val result = mutableListOf<Pair<RPWorldEntry, Int>>()
         val visited = mutableSetOf<Long>()
@@ -89,14 +91,6 @@ fun WorldEntryScreen(
         }
 
         addChildren(null, 0)
-
-        // Paparkan rekod yang terperangkap dalam
-        // circular hierarchy supaya tidak tersembunyi.
-        entries.forEach { entry ->
-            if (entry.id !in visited) {
-                result.add(entry to 0)
-            }
-        }
 
         result
     }
@@ -210,9 +204,7 @@ fun WorldEntryScreen(
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(
-                                start = (depth * 18).dp
-                            ),
+                            .padding(start = (depth * 18).dp),
                         shape = RoundedCornerShape(15.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = EntryCard
@@ -267,9 +259,7 @@ fun WorldEntryScreen(
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                Spacer(
-                                    modifier = Modifier.height(5.dp)
-                                )
+                                Spacer(modifier = Modifier.height(5.dp))
 
                                 Text(
                                     entry.type,
@@ -333,9 +323,7 @@ fun WorldEntryScreen(
                                     }
                                 ) {
                                     DropdownMenuItem(
-                                        text = {
-                                            Text("Edit")
-                                        },
+                                        text = { Text("Edit") },
                                         onClick = {
                                             menuEntry = null
                                             onEditEntry(entry)
