@@ -1,23 +1,33 @@
+
 package com.rparchitect.app
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import com.rparchitect.app.data.model.RPProject
+import com.rparchitect.app.data.model.RPCharacter
 import com.rparchitect.app.data.repository.ProjectRepository
+import com.rparchitect.app.data.repository.CharacterRepository
 import com.rparchitect.app.ui.screens.HomeScreen
 import com.rparchitect.app.ui.screens.ProjectManagerScreen
 import com.rparchitect.app.ui.screens.CreateProjectScreen
 import com.rparchitect.app.ui.screens.EditProjectScreen
 import com.rparchitect.app.ui.screens.WorkspaceScreen
+import com.rparchitect.app.ui.screens.CharacterScreen
+import com.rparchitect.app.ui.screens.CreateCharacterScreen
+import com.rparchitect.app.ui.screens.EditCharacterScreen
 
 private enum class AppScreen {
     HOME,
     PROJECTS,
     CREATE_PROJECT,
     EDIT_PROJECT,
-    WORKSPACE
+    WORKSPACE,
+    CHARACTERS,
+    CREATE_CHARACTER,
+    EDIT_CHARACTER
 }
 
 class MainActivity : ComponentActivity() {
@@ -34,12 +44,20 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RPArchitectApp() {
 
-    val repository = remember {
+    val projectRepository = remember {
         ProjectRepository()
     }
 
+    val characterRepository = remember {
+        CharacterRepository()
+    }
+
     var projects by remember {
-        mutableStateOf(repository.getAllProjects())
+        mutableStateOf(projectRepository.getAllProjects())
+    }
+
+    var characters by remember {
+        mutableStateOf(emptyList<RPCharacter>())
     }
 
     var currentScreen by remember {
@@ -50,8 +68,16 @@ fun RPArchitectApp() {
         mutableStateOf<RPProject?>(null)
     }
 
+    var selectedCharacter by remember {
+        mutableStateOf<RPCharacter?>(null)
+    }
+
     fun refreshProjects() {
-        projects = repository.getAllProjects()
+        projects = projectRepository.getAllProjects()
+    }
+
+    fun refreshCharacters(projectId: Long) {
+        characters = characterRepository.getCharactersByProject(projectId)
     }
 
     fun createProject(
@@ -70,7 +96,7 @@ fun RPArchitectApp() {
             updatedAt = now
         )
 
-        repository.addProject(project)
+        projectRepository.addProject(project)
         refreshProjects()
         currentScreen = AppScreen.PROJECTS
     }
@@ -89,10 +115,75 @@ fun RPArchitectApp() {
             updatedAt = System.currentTimeMillis()
         )
 
-        repository.updateProject(updatedProject)
+        projectRepository.updateProject(updatedProject)
         refreshProjects()
         selectedProject = updatedProject
         currentScreen = AppScreen.PROJECTS
+    }
+
+    fun createCharacter(
+        name: String,
+        role: String,
+        age: String,
+        gender: String,
+        personality: String,
+        background: String,
+        appearance: String,
+        notes: String
+    ) {
+        val project = selectedProject ?: return
+        val now = System.currentTimeMillis()
+
+        val character = RPCharacter(
+            id = now,
+            projectId = project.id,
+            name = name,
+            role = role,
+            age = age,
+            gender = gender,
+            personality = personality,
+            background = background,
+            appearance = appearance,
+            notes = notes,
+            createdAt = now,
+            updatedAt = now
+        )
+
+        characterRepository.addCharacter(character)
+        refreshCharacters(project.id)
+        currentScreen = AppScreen.CHARACTERS
+    }
+
+    fun updateCharacter(
+        name: String,
+        role: String,
+        age: String,
+        gender: String,
+        personality: String,
+        background: String,
+        appearance: String,
+        notes: String
+    ) {
+        val oldCharacter = selectedCharacter ?: return
+        val project = selectedProject ?: return
+
+        val updatedCharacter = oldCharacter.copy(
+            name = name,
+            role = role,
+            age = age,
+            gender = gender,
+            personality = personality,
+            background = background,
+            appearance = appearance,
+            notes = notes,
+            updatedAt = System.currentTimeMillis()
+        )
+
+        characterRepository.updateCharacter(updatedCharacter)
+        selectedCharacter = updatedCharacter
+
+        refreshCharacters(project.id)
+        currentScreen = AppScreen.CHARACTERS
     }
 
     MaterialTheme {
@@ -123,6 +214,7 @@ fun RPArchitectApp() {
                     },
                     onProjectClick = { project ->
                         selectedProject = project
+                        refreshCharacters(project.id)
                         currentScreen = AppScreen.WORKSPACE
                     },
                     onEditProject = { project ->
@@ -130,7 +222,7 @@ fun RPArchitectApp() {
                         currentScreen = AppScreen.EDIT_PROJECT
                     },
                     onDeleteProject = { projectId ->
-                        repository.deleteProject(projectId)
+                        projectRepository.deleteProject(projectId)
                         refreshProjects()
                     }
                 )
@@ -172,9 +264,84 @@ fun RPArchitectApp() {
                         onBackClick = {
                             currentScreen = AppScreen.PROJECTS
                         },
-                        onCharactersClick = {},
+                        onCharactersClick = {
+                            refreshCharacters(project.id)
+                            currentScreen = AppScreen.CHARACTERS
+                        },
                         onWorldBuildingClick = {},
                         onStoryClick = {}
+                    )
+                }
+            }
+
+            AppScreen.CHARACTERS -> {
+                val project = selectedProject
+
+                if (project != null) {
+                    CharacterScreen(
+                        projectName = project.name,
+                        characters = characters,
+                        onBackClick = {
+                            currentScreen = AppScreen.WORKSPACE
+                        },
+                        onCreateCharacter = {
+                            currentScreen = AppScreen.CREATE_CHARACTER
+                        },
+                        onEditCharacter = { character ->
+                            selectedCharacter = character
+                            currentScreen = AppScreen.EDIT_CHARACTER
+                        },
+                        onDeleteCharacter = { characterId ->
+                            characterRepository.deleteCharacter(characterId)
+                            refreshCharacters(project.id)
+                        }
+                    )
+                }
+            }
+
+            AppScreen.CREATE_CHARACTER -> {
+                CreateCharacterScreen(
+                    onBackClick = {
+                        currentScreen = AppScreen.CHARACTERS
+                    },
+                    onCreateClick = { name, role, age, gender,
+                                      personality, background, appearance, notes ->
+                        createCharacter(
+                            name,
+                            role,
+                            age,
+                            gender,
+                            personality,
+                            background,
+                            appearance,
+                            notes
+                        )
+                    }
+                )
+            }
+
+            AppScreen.EDIT_CHARACTER -> {
+                val character = selectedCharacter
+
+                if (character != null) {
+                    EditCharacterScreen(
+                        character = character,
+                        onBackClick = {
+                            currentScreen = AppScreen.CHARACTERS
+                        },
+                        onSaveClick = { name, role, age, gender,
+                                        personality, background, appearance, notes ->
+                            updateCharacter(
+                                name,
+                                role,
+                                age,
+                                gender,
+                                personality,
+                                background,
+                                appearance,
+                                notes
+                            )
+                        }
                     )
                 }
             }
