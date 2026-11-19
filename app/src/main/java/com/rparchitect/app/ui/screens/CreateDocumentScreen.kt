@@ -12,17 +12,13 @@ import com.rparchitect.app.data.model.RPTemplate
 @Composable
 fun CreateDocumentScreen(
     templates: List<RPTemplate>,
+    title: String,
+    selectedTemplate: RPTemplate?,
+    onTitleChange: (String) -> Unit,
+    onTemplateSelected: (RPTemplate) -> Unit,
     onBackClick: () -> Unit,
     onContinue: (String, RPTemplate) -> Unit
 ) {
-    var title by remember {
-        mutableStateOf("")
-    }
-
-    var selectedTemplate by remember {
-        mutableStateOf<RPTemplate?>(null)
-    }
-
     var expanded by remember {
         mutableStateOf(false)
     }
@@ -52,15 +48,13 @@ fun CreateDocumentScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
-                .padding(16.dp),
+                .padding(20.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
 
             OutlinedTextField(
                 value = title,
-                onValueChange = {
-                    title = it
-                },
+                onValueChange = onTitleChange,
                 label = {
                     Text("Document Title")
                 },
@@ -74,6 +68,7 @@ fun CreateDocumentScreen(
                     expanded = !expanded
                 }
             ) {
+
                 OutlinedTextField(
                     value = selectedTemplate?.name ?: "",
                     onValueChange = {},
@@ -97,30 +92,20 @@ fun CreateDocumentScreen(
                         expanded = false
                     }
                 ) {
+
                     availableTemplates.forEach { template ->
+
                         DropdownMenuItem(
                             text = {
                                 Text(template.name)
                             },
                             onClick = {
-                                selectedTemplate = template
+                                onTemplateSelected(template)
                                 expanded = false
                             }
                         )
                     }
                 }
-            }
-
-            selectedTemplate?.let { template ->
-                Text(
-                    text = template.description,
-                    style = MaterialTheme.typography.bodyMedium
-                )
-
-                Text(
-                    text = "${template.fields.size} fields",
-                    style = MaterialTheme.typography.bodySmall
-                )
             }
 
             Spacer(modifier = Modifier.weight(1f))
@@ -130,10 +115,7 @@ fun CreateDocumentScreen(
                     val template = selectedTemplate
 
                     if (title.isNotBlank() && template != null) {
-                        onContinue(
-                            title.trim(),
-                            template
-                        )
+                        onContinue(title.trim(), template)
                     }
                 },
                 enabled = title.isNotBlank() && selectedTemplate != null,
