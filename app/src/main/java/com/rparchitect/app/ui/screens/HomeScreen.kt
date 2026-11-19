@@ -15,10 +15,11 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val BackgroundDark = Color(0xFF101116)
-private val CardDark = Color(0xFF1B1D26)
-private val AccentColor = Color(0xFF9B8CFF)
-private val SecondaryText = Color(0xFF9A9BA8)
+private val BackgroundDark = Color(0xFF08090B)
+private val CardDark = Color(0xFF24262B)
+private val AccentColor = Color(0xFFFFFFFF)
+private val SecondaryText = Color(0xFFA0A2A8)
+private val IconBackground = Color(0xFF35383E)
 
 @Composable
 fun HomeScreen(
@@ -46,7 +47,7 @@ fun HomeScreen(
 
         Text(
             "ROLEPLAY WORLD BUILDER",
-            color = AccentColor,
+            color = SecondaryText,
             fontSize = 9.sp,
             letterSpacing = 2.sp
         )
@@ -165,14 +166,14 @@ private fun DashboardCard(
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        Color(0xFF302B48),
+                        IconBackground,
                         RoundedCornerShape(13.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     symbol,
-                    color = AccentColor,
+                    color = Color.White,
                     fontSize = 25.sp
                 )
             }
@@ -200,7 +201,7 @@ private fun DashboardCard(
 
             Text(
                 "›",
-                color = AccentColor,
+                color = Color.White,
                 fontSize = 27.sp
             )
         }
