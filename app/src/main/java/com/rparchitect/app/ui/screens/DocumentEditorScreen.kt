@@ -18,6 +18,7 @@ fun DocumentEditorScreen(
     template: RPTemplate,
     initialValues: Map<String, String> = emptyMap(),
     onBackClick: () -> Unit,
+    onPreview: (Map<String, String>) -> Unit,
     onSave: (Map<String, String>) -> Unit
 ) {
     val values = remember(template.id, initialValues) {
@@ -97,7 +98,8 @@ fun DocumentEditorScreen(
                             OutlinedTextField(
                                 value = values[field.id] ?: "",
                                 onValueChange = { input ->
-                                    if (input.isEmpty() ||
+                                    if (
+                                        input.isEmpty() ||
                                         input.toDoubleOrNull() != null
                                     ) {
                                         values[field.id] = input
@@ -176,6 +178,15 @@ fun DocumentEditorScreen(
                         }
                     }
                 }
+            }
+
+            OutlinedButton(
+                onClick = {
+                    onPreview(values.toMap())
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Preview Document")
             }
 
             Button(
