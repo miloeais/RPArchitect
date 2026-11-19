@@ -197,6 +197,10 @@ fun RPArchitectApp() {
         mutableStateOf("")
     }
 
+    var newDocumentTitle by remember {
+        mutableStateOf("")
+    }
+
     var newDocumentTemplate by remember {
         mutableStateOf<RPTemplate?>(null)
     }
