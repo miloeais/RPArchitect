@@ -55,7 +55,16 @@ fun EditWorldEntryScreen(
         "Headquarters"
     )
 
-    // Cari semua keturunan entry secara recursive.
+    val hasChildren = remember(entry.id, entries) {
+        entries.any { it.parentId == entry.id }
+    }
+
+    val availableEntryTypes = entryTypes.filter { option ->
+        option != "Headquarters" ||
+            !hasChildren ||
+            type == "Headquarters"
+    }
+
     val descendantIds = remember(entry.id, entries) {
         val descendants = mutableSetOf<Long>()
 
@@ -73,7 +82,6 @@ fun EditWorldEntryScreen(
         descendants
     }
 
-    // Parent tidak boleh menjadi diri sendiri atau keturunan sendiri.
     val parentOptions = remember(entries, entry.id, descendantIds) {
         entries.filter {
             it.id != entry.id &&
@@ -82,7 +90,6 @@ fun EditWorldEntryScreen(
         }
     }
 
-    // Pastikan parent sedia ada masih sah.
     val validParentId = parentId?.takeIf { id ->
         parentOptions.any { it.id == id }
     }
@@ -146,7 +153,7 @@ fun EditWorldEntryScreen(
                         typeExpanded = false
                     }
                 ) {
-                    entryTypes.forEach { option ->
+                    availableEntryTypes.forEach { option ->
                         DropdownMenuItem(
                             text = { Text(option) },
                             onClick = {
