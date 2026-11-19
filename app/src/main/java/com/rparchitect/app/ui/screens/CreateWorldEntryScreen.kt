@@ -1,23 +1,14 @@
+
 package com.rparchitect.app.ui.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPWorldEntry
-
-private val CreateEntryBackground = Color(0xFF101116)
-private val CreateEntryCard = Color(0xFF1B1D26)
-private val CreateEntryAccent = Color(0xFF9B8CFF)
-private val CreateEntrySecondary = Color(0xFF9A9BA8)
 
 private val worldEntryTypes = listOf(
     "Country",
@@ -30,13 +21,13 @@ private val worldEntryTypes = listOf(
     "Headquarters"
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreateWorldEntryScreen(
     entries: List<RPWorldEntry>,
     onBackClick: () -> Unit,
     onCreateClick: (
         Long?,
-        String,
         String,
         String,
         String,
@@ -63,306 +54,214 @@ fun CreateWorldEntryScreen(
     var typeExpanded by remember { mutableStateOf(false) }
     var parentExpanded by remember { mutableStateOf(false) }
 
-    val availableParents = entries.filter {
+    val parentOptions = entries.filter {
         it.type != "Headquarters"
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(CreateEntryBackground)
-            .verticalScroll(rememberScrollState())
-            .padding(20.dp)
-    ) {
-        TextButton(onClick = onBackClick) {
-            Text("‹ Locations & Factions", color = CreateEntryAccent)
-        }
-
-        Spacer(modifier = Modifier.height(20.dp))
-
-        Text(
-            "Create World Entry",
-            color = Color.White,
-            fontSize = 25.sp,
-            fontWeight = FontWeight.Bold
-        )
-
-        Text(
-            "Add a location or organization to your world.",
-            color = CreateEntrySecondary,
-            fontSize = 12.sp
-        )
-
-        Spacer(modifier = Modifier.height(25.dp))
-
-        EntryInputLabel("NAME")
-
-        OutlinedTextField(
-            value = name,
-            onValueChange = { name = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Enter name") },
-            singleLine = true,
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("ENTRY TYPE")
-
-        ExposedDropdownMenuBox(
-            expanded = typeExpanded,
-            onExpandedChange = { typeExpanded = !typeExpanded }
-        ) {
-            OutlinedTextField(
-                value = type,
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = typeExpanded
-                    )
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text("Create Location / Faction")
                 },
-                shape = RoundedCornerShape(12.dp),
-                colors = createEntryFieldColors()
-            )
-
-            ExposedDropdownMenu(
-                expanded = typeExpanded,
-                onDismissRequest = { typeExpanded = false }
-            ) {
-                worldEntryTypes.forEach { entryType ->
-                    DropdownMenuItem(
-                        text = { Text(entryType) },
-                        onClick = {
-                            type = entryType
-                            typeExpanded = false
-                        }
-                    )
-                }
-            }
-        }
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("PARENT ENTRY (OPTIONAL)")
-
-        ExposedDropdownMenuBox(
-            expanded = parentExpanded,
-            onExpandedChange = {
-                parentExpanded = !parentExpanded
-            }
-        ) {
-            OutlinedTextField(
-                value = availableParents.firstOrNull {
-                    it.id == parentId
-                }?.name ?: "None",
-                onValueChange = {},
-                readOnly = true,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .menuAnchor(),
-                trailingIcon = {
-                    ExposedDropdownMenuDefaults.TrailingIcon(
-                        expanded = parentExpanded
-                    )
-                },
-                shape = RoundedCornerShape(12.dp),
-                colors = createEntryFieldColors()
-            )
-
-            ExposedDropdownMenu(
-                expanded = parentExpanded,
-                onDismissRequest = {
-                    parentExpanded = false
-                }
-            ) {
-                DropdownMenuItem(
-                    text = { Text("None") },
-                    onClick = {
-                        parentId = null
-                        parentExpanded = false
+                navigationIcon = {
+                    TextButton(onClick = onBackClick) {
+                        Text("Back")
                     }
+                }
+            )
+        }
+    ) { padding ->
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+
+            OutlinedTextField(
+                value = name,
+                onValueChange = { name = it },
+                label = { Text("Name") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            ExposedDropdownMenuBox(
+                expanded = typeExpanded,
+                onExpandedChange = {
+                    typeExpanded = !typeExpanded
+                }
+            ) {
+                OutlinedTextField(
+                    value = type,
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Entry Type") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = typeExpanded
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
                 )
 
-                availableParents.forEach { entry ->
+                ExposedDropdownMenu(
+                    expanded = typeExpanded,
+                    onDismissRequest = {
+                        typeExpanded = false
+                    }
+                ) {
+                    worldEntryTypes.forEach { option ->
+                        DropdownMenuItem(
+                            text = { Text(option) },
+                            onClick = {
+                                type = option
+                                typeExpanded = false
+                            }
+                        )
+                    }
+                }
+            }
+
+            ExposedDropdownMenuBox(
+                expanded = parentExpanded,
+                onExpandedChange = {
+                    parentExpanded = !parentExpanded
+                }
+            ) {
+                OutlinedTextField(
+                    value = parentOptions.firstOrNull {
+                        it.id == parentId
+                    }?.name ?: "None (Root Entry)",
+                    onValueChange = {},
+                    readOnly = true,
+                    label = { Text("Parent Entry") },
+                    trailingIcon = {
+                        ExposedDropdownMenuDefaults.TrailingIcon(
+                            expanded = parentExpanded
+                        )
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .menuAnchor()
+                )
+
+                ExposedDropdownMenu(
+                    expanded = parentExpanded,
+                    onDismissRequest = {
+                        parentExpanded = false
+                    }
+                ) {
                     DropdownMenuItem(
                         text = {
-                            Text("${entry.name} (${entry.type})")
+                            Text("None (Root Entry)")
                         },
                         onClick = {
-                            parentId = entry.id
+                            parentId = null
                             parentExpanded = false
                         }
                     )
+
+                    parentOptions.forEach { entry ->
+                        DropdownMenuItem(
+                            text = {
+                                Text("${entry.name} (${entry.type})")
+                            },
+                            onClick = {
+                                parentId = entry.id
+                                parentExpanded = false
+                            }
+                        )
+                    }
                 }
             }
-        }
 
-        Spacer(modifier = Modifier.height(18.dp))
+            HorizontalDivider()
 
-        EntryInputLabel("DESCRIPTION")
-
-        OutlinedTextField(
-            value = description,
-            onValueChange = { description = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
-            placeholder = { Text("Describe this entry...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("HISTORY")
-
-        OutlinedTextField(
-            value = history,
-            onValueChange = { history = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(120.dp),
-            placeholder = { Text("Background and historical events...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("GOVERNMENT / POLITICAL SYSTEM")
-
-        OutlinedTextField(
-            value = government,
-            onValueChange = { government = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Government or political structure...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("LEADER / AUTHORITY")
-
-        OutlinedTextField(
-            value = leader,
-            onValueChange = { leader = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Leader, founder or person in charge...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("HEADQUARTERS")
-
-        OutlinedTextField(
-            value = headquarters,
-            onValueChange = { headquarters = it },
-            modifier = Modifier.fillMaxWidth(),
-            placeholder = { Text("Main headquarters or base...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("TERRITORY / AREA OF INFLUENCE")
-
-        OutlinedTextField(
-            value = territory,
-            onValueChange = { territory = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            placeholder = { Text("Territory, jurisdiction or area controlled...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(18.dp))
-
-        EntryInputLabel("ADDITIONAL NOTES")
-
-        OutlinedTextField(
-            value = notes,
-            onValueChange = { notes = it },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(100.dp),
-            placeholder = { Text("Other information...") },
-            shape = RoundedCornerShape(12.dp),
-            colors = createEntryFieldColors()
-        )
-
-        Spacer(modifier = Modifier.height(28.dp))
-
-        Button(
-            onClick = {
-                onCreateClick(
-                    parentId,
-                    name.trim(),
-                    type,
-                    description.trim(),
-                    history.trim(),
-                    government.trim(),
-                    leader.trim(),
-                    headquarters.trim(),
-                    territory.trim(),
-                    notes.trim(),
-                    ""
-                )
-            },
-            enabled = name.isNotBlank(),
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(52.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = CreateEntryAccent
-            ),
-            shape = RoundedCornerShape(14.dp)
-        ) {
-            Text(
-                "Create Entry",
-                color = Color.Black,
-                fontWeight = FontWeight.Bold
+            OutlinedTextField(
+                value = description,
+                onValueChange = { description = it },
+                label = { Text("Description") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
             )
-        }
 
-        Spacer(modifier = Modifier.height(20.dp))
+            OutlinedTextField(
+                value = history,
+                onValueChange = { history = it },
+                label = { Text("History") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
+            )
+
+            OutlinedTextField(
+                value = government,
+                onValueChange = { government = it },
+                label = { Text("Government / Structure") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2
+            )
+
+            OutlinedTextField(
+                value = leader,
+                onValueChange = { leader = it },
+                label = { Text("Leader") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = headquarters,
+                onValueChange = { headquarters = it },
+                label = { Text("Headquarters") },
+                modifier = Modifier.fillMaxWidth(),
+                singleLine = true
+            )
+
+            OutlinedTextField(
+                value = territory,
+                onValueChange = { territory = it },
+                label = { Text("Territory / Area of Influence") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 2
+            )
+
+            OutlinedTextField(
+                value = notes,
+                onValueChange = { notes = it },
+                label = { Text("Additional Notes") },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 3
+            )
+
+            Button(
+                onClick = {
+                    if (name.isNotBlank()) {
+                        onCreateClick(
+                            parentId,
+                            name.trim(),
+                            type,
+                            description.trim(),
+                            history.trim(),
+                            government.trim(),
+                            leader.trim(),
+                            headquarters.trim(),
+                            territory.trim(),
+                            notes.trim()
+                        )
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                enabled = name.isNotBlank()
+            ) {
+                Text("Create Entry")
+            }
+        }
     }
 }
-
-@Composable
-private fun EntryInputLabel(label: String) {
-    Text(
-        label,
-        color = CreateEntrySecondary,
-        fontSize = 11.sp,
-        fontWeight = FontWeight.Bold,
-        letterSpacing = 1.2.sp
-    )
-
-    Spacer(modifier = Modifier.height(8.dp))
-}
-
-@Composable
-private fun createEntryFieldColors() =
-    OutlinedTextFieldDefaults.colors(
-        focusedTextColor = Color.White,
-        unfocusedTextColor = Color.White,
-        focusedContainerColor = CreateEntryCard,
-        unfocusedContainerColor = CreateEntryCard,
-        focusedBorderColor = CreateEntryAccent,
-        unfocusedBorderColor = Color(0xFF353744),
-        focusedPlaceholderColor = CreateEntrySecondary,
-        unfocusedPlaceholderColor = CreateEntrySecondary,
-        cursorColor = CreateEntryAccent
-    )
