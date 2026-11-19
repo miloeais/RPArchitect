@@ -1091,6 +1091,8 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.WORKSPACE
                         },
                         onCreateDocument = {
+                            newDocumentTitle = ""
+                            newDocumentTemplate = null
                             currentScreen = AppScreen.CREATE_DOCUMENT
                         },
                         onDocumentClick = { document ->
