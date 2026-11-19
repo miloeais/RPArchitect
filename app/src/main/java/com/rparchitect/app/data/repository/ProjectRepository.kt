@@ -1,32 +1,31 @@
+
 package com.rparchitect.app.data.repository
 
+import com.rparchitect.app.data.dao.ProjectDao
 import com.rparchitect.app.data.model.RPProject
+import kotlinx.coroutines.flow.Flow
 
-class ProjectRepository {
+class ProjectRepository(
+    private val projectDao: ProjectDao
+) {
 
-    private val projects = mutableListOf<RPProject>()
-
-    fun getAllProjects(): List<RPProject> {
-        return projects.toList()
+    fun getAllProjects(): Flow<List<RPProject>> {
+        return projectDao.getAllProjects()
     }
 
-    fun addProject(project: RPProject) {
-        projects.add(project)
+    suspend fun getProjectById(projectId: Long): RPProject? {
+        return projectDao.getProjectById(projectId)
     }
 
-    fun updateProject(project: RPProject) {
-        val index = projects.indexOfFirst {
-            it.id == project.id
-        }
-
-        if (index != -1) {
-            projects[index] = project
-        }
+    suspend fun addProject(project: RPProject) {
+        projectDao.insertProject(project)
     }
 
-    fun deleteProject(projectId: Long) {
-        projects.removeAll {
-            it.id == projectId
-        }
+    suspend fun updateProject(project: RPProject) {
+        projectDao.updateProject(project)
+    }
+
+    suspend fun deleteProject(projectId: Long) {
+        projectDao.deleteProjectById(projectId)
     }
 }
