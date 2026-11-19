@@ -18,6 +18,21 @@ fun TemplateLibraryScreen(
     onBackClick: () -> Unit,
     onTemplateClick: (RPTemplate) -> Unit
 ) {
+    val presetTemplates = templates.filter {
+        !it.isCustom
+    }
+
+    val customTemplates = templates.filter {
+        it.isCustom &&
+            !(it.name == "Custom Template" && it.fields.isEmpty())
+    }
+
+    val builderTemplate = templates.firstOrNull {
+        it.isCustom &&
+            it.name == "Custom Template" &&
+            it.fields.isEmpty()
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -43,47 +58,96 @@ fun TemplateLibraryScreen(
         ) {
 
             Text(
-                text = "Choose a template",
+                text = "Preset Templates",
                 style = MaterialTheme.typography.titleMedium
             )
 
-            templates.forEach { template ->
-
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable {
-                            onTemplateClick(template)
-                        }
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-
-                        Text(
-                            text = template.name,
-                            style = MaterialTheme.typography.titleMedium
-                        )
-
-                        Text(
-                            text = template.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-
-                        Text(
-                            text = if (template.isCustom) {
-                                "Custom Template"
-                            } else {
-                                "${template.fields.size} fields"
-                            },
-                            style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.primary
-                        )
+            presetTemplates.forEach { template ->
+                TemplateCard(
+                    template = template,
+                    onClick = {
+                        onTemplateClick(template)
                     }
+                )
+            }
+
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp)
+            )
+
+            Text(
+                text = "My Custom Templates",
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            if (customTemplates.isEmpty()) {
+                Text(
+                    text = "You haven't created any custom templates yet.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+
+            customTemplates.forEach { template ->
+                TemplateCard(
+                    template = template,
+                    onClick = {
+                        onTemplateClick(template)
+                    }
+                )
+            }
+
+            if (builderTemplate != null) {
+                Button(
+                    onClick = {
+                        onTemplateClick(builderTemplate)
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("+ Create Custom Template")
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun TemplateCard(
+    template: RPTemplate,
+    onClick: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                onClick()
+            }
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+
+            Text(
+                text = template.name,
+                style = MaterialTheme.typography.titleMedium
+            )
+
+            Text(
+                text = template.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Text(
+                text = if (template.isCustom) {
+                    "${template.fields.size} fields • Custom Template"
+                } else {
+                    "${template.fields.size} fields"
+                },
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
+            )
         }
     }
 }
