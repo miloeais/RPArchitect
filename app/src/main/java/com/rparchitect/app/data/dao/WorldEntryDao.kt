@@ -25,6 +25,9 @@ interface WorldEntryDao {
     @Query("SELECT * FROM world_entries WHERE parentId = :parentId ORDER BY name ASC")
     fun getEntriesByParent(parentId: Long): Flow<List<RPWorldEntry>>
 
+    @Query("SELECT * FROM world_entries WHERE parentId = :parentId")
+    suspend fun getChildrenOnce(parentId: Long): List<RPWorldEntry>
+
     @Query("SELECT * FROM world_entries WHERE id = :entryId LIMIT 1")
     suspend fun getEntryById(entryId: Long): RPWorldEntry?
 
@@ -36,6 +39,9 @@ interface WorldEntryDao {
 
     @Delete
     suspend fun deleteEntry(entry: RPWorldEntry)
+
+    @Query("DELETE FROM world_entries WHERE id IN (:entryIds)")
+    suspend fun deleteEntriesByIds(entryIds: List<Long>)
 
     @Query("DELETE FROM world_entries WHERE id = :entryId")
     suspend fun deleteEntryById(entryId: Long)
