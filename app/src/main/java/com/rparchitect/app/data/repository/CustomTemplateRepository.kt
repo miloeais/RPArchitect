@@ -77,12 +77,11 @@ class CustomTemplateRepository(
         customTemplateDao.deleteOptionsByField(fieldId)
     }
 
-    // COMPLETE TEMPLATE STRUCTURE
+    // COMPLETE TEMPLATE
 
     suspend fun getCompleteTemplate(
         templateId: String
     ): List<CustomTemplateFieldData> {
-
         val fields = customTemplateDao.getFieldsByTemplate(templateId)
 
         return fields.map { field ->
@@ -91,5 +90,12 @@ class CustomTemplateRepository(
                 options = customTemplateDao.getOptionsByField(field.id)
             )
         }
+    }
+
+    suspend fun saveCompleteTemplate(
+        template: RPCustomTemplate,
+        fields: List<CustomTemplateFieldData>
+    ) {
+        customTemplateDao.saveCompleteTemplate(template, fields)
     }
 }
