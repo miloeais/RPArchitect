@@ -14,6 +14,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPProject
+import com.rparchitect.app.ui.components.DeleteProjectDialog
 
 private val BackgroundDark = Color(0xFF101116)
 private val CardDark = Color(0xFF1B1D26)
@@ -25,8 +26,12 @@ fun ProjectManagerScreen(
     projects: List<RPProject>,
     onBackClick: () -> Unit,
     onCreateProject: () -> Unit,
-    onProjectClick: (RPProject) -> Unit
+    onProjectClick: (RPProject) -> Unit,
+    onDeleteProject: (Long) -> Unit
 ) {
+    var menuProject by remember { mutableStateOf<RPProject?>(null) }
+    var projectToDelete by remember { mutableStateOf<RPProject?>(null) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -87,18 +92,11 @@ fun ProjectManagerScreen(
 
         if (projects.isEmpty()) {
             Box(
-                modifier = Modifier
-                    .fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Text(
-                        "▦",
-                        color = AccentColor,
-                        fontSize = 48.sp
-                    )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text("▦", color = AccentColor, fontSize = 48.sp)
 
                     Spacer(modifier = Modifier.height(12.dp))
 
@@ -127,44 +125,110 @@ fun ProjectManagerScreen(
                     key = { it.id }
                 ) { project ->
                     Card(
-                        onClick = { onProjectClick(project) },
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(15.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = CardDark
                         )
                     ) {
-                        Column(
-                            modifier = Modifier.padding(16.dp)
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(start = 16.dp, end = 8.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                project.name,
-                                color = Color.White,
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .weight(1f)
+                                    .padding(vertical = 16.dp)
+                            ) {
+                                TextButton(
+                                    onClick = { onProjectClick(project) },
+                                    contentPadding = PaddingValues(0.dp)
+                                ) {
+                                    Column {
+                                        Text(
+                                            project.name,
+                                            color = Color.White,
+                                            fontSize = 16.sp,
+                                            fontWeight = FontWeight.Bold
+                                        )
 
-                            Spacer(modifier = Modifier.height(5.dp))
+                                        Spacer(modifier = Modifier.height(5.dp))
 
-                            Text(
-                                project.genre,
-                                color = AccentColor,
-                                fontSize = 11.sp
-                            )
+                                        Text(
+                                            project.genre,
+                                            color = AccentColor,
+                                            fontSize = 11.sp
+                                        )
 
-                            if (project.description.isNotBlank()) {
-                                Spacer(modifier = Modifier.height(7.dp))
+                                        if (project.description.isNotBlank()) {
+                                            Spacer(modifier = Modifier.height(7.dp))
 
-                                Text(
-                                    project.description,
-                                    color = SecondaryText,
-                                    fontSize = 12.sp
-                                )
+                                            Text(
+                                                project.description,
+                                                color = SecondaryText,
+                                                fontSize = 12.sp
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+
+                            Box {
+                                IconButton(
+                                    onClick = { menuProject = project }
+                                ) {
+                                    Text(
+                                        "⋮",
+                                        color = Color.White,
+                                        fontSize = 24.sp
+                                    )
+                                }
+
+                                DropdownMenu(
+                                    expanded = menuProject?.id == project.id,
+                                    onDismissRequest = { menuProject = null }
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("Edit") },
+                                        onClick = {
+                                            menuProject = null
+                                            onProjectClick(project)
+                                        }
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
+                                                "Delete",
+                                                color = Color(0xFFE57373)
+                                            )
+                                        },
+                                        onClick = {
+                                            menuProject = null
+                                            projectToDelete = project
+                                        }
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
         }
+    }
+
+    projectToDelete?.let { project ->
+        DeleteProjectDialog(
+            projectName = project.name,
+            onDismiss = {
+                projectToDelete = null
+            },
+            onConfirm = {
+                onDeleteProject(project.id)
+                projectToDelete = null
+            }
+        )
     }
 }
