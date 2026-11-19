@@ -6,34 +6,32 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
-
+import androidx.compose.ui.platform.LocalContext
+import androidx.room.Room
+import com.rparchitect.app.data.database.DatabaseProvider
 import com.rparchitect.app.data.model.RPProject
 import com.rparchitect.app.data.model.RPCharacter
 import com.rparchitect.app.data.model.RPWorldLore
 import com.rparchitect.app.data.model.RPWorldEntry
-
 import com.rparchitect.app.data.repository.ProjectRepository
 import com.rparchitect.app.data.repository.CharacterRepository
 import com.rparchitect.app.data.repository.WorldLoreRepository
 import com.rparchitect.app.data.repository.WorldEntryRepository
-
 import com.rparchitect.app.ui.screens.HomeScreen
 import com.rparchitect.app.ui.screens.ProjectManagerScreen
 import com.rparchitect.app.ui.screens.CreateProjectScreen
 import com.rparchitect.app.ui.screens.EditProjectScreen
 import com.rparchitect.app.ui.screens.WorkspaceScreen
-
 import com.rparchitect.app.ui.screens.CharacterScreen
 import com.rparchitect.app.ui.screens.CreateCharacterScreen
 import com.rparchitect.app.ui.screens.EditCharacterScreen
-
 import com.rparchitect.app.ui.screens.WorldLoreScreen
 import com.rparchitect.app.ui.screens.CreateWorldLoreScreen
 import com.rparchitect.app.ui.screens.EditWorldLoreScreen
-
 import com.rparchitect.app.ui.screens.WorldEntryScreen
 import com.rparchitect.app.ui.screens.CreateWorldEntryScreen
 import com.rparchitect.app.ui.screens.EditWorldEntryScreen
+import kotlinx.coroutines.launch
 
 private enum class AppScreen {
     HOME,
@@ -66,37 +64,44 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun RPArchitectApp() {
 
-    val projectRepository = remember {
-        ProjectRepository()
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
+
+    val database = remember {
+        DatabaseProvider.getDatabase(context)
     }
 
-    val characterRepository = remember {
-        CharacterRepository()
+    val projectRepository = remember(database) {
+        ProjectRepository(database.projectDao())
     }
 
-    val worldLoreRepository = remember {
-        WorldLoreRepository()
+    val characterRepository = remember(database) {
+        CharacterRepository(database.characterDao())
     }
 
-    val worldEntryRepository = remember {
-        WorldEntryRepository()
+    val worldLoreRepository = remember(database) {
+        WorldLoreRepository(database.worldLoreDao())
     }
 
-    var projects by remember {
-        mutableStateOf(projectRepository.getAllProjects())
+    val worldEntryRepository = remember(database) {
+        WorldEntryRepository(database.worldEntryDao())
     }
 
-    var characters by remember {
-        mutableStateOf(emptyList<RPCharacter>())
-    }
+    val projects by projectRepository
+        .getAllProjects()
+        .collectAsState(initial = emptyList())
 
-    var worldLores by remember {
-        mutableStateOf(emptyList<RPWorldLore>())
-    }
+    val allCharacters by characterRepository
+        .getAllCharacters()
+        .collectAsState(initial = emptyList())
 
-    var worldEntries by remember {
-        mutableStateOf(emptyList<RPWorldEntry>())
-    }
+    val allWorldLores by worldLoreRepository
+        .getAllWorldLores()
+        .collectAsState(initial = emptyList())
+
+    val allWorldEntries by worldEntryRepository
+        .getAllEntries()
+        .collectAsState(initial = emptyList())
 
     var currentScreen by remember {
         mutableStateOf(AppScreen.HOME)
@@ -118,20 +123,16 @@ fun RPArchitectApp() {
         mutableStateOf<RPWorldEntry?>(null)
     }
 
-    fun refreshProjects() {
-        projects = projectRepository.getAllProjects()
+    val characters = allCharacters.filter {
+        it.projectId == selectedProject?.id
     }
 
-    fun refreshCharacters(projectId: Long) {
-        characters = characterRepository.getCharactersByProject(projectId)
+    val worldLores = allWorldLores.filter {
+        it.projectId == selectedProject?.id
     }
 
-    fun refreshWorldLores(projectId: Long) {
-        worldLores = worldLoreRepository.getWorldLoresByProject(projectId)
-    }
-
-    fun refreshWorldEntries(projectId: Long) {
-        worldEntries = worldEntryRepository.getEntriesByProject(projectId)
+    val worldEntries = allWorldEntries.filter {
+        it.projectId == selectedProject?.id
     }
 
     fun createProject(
@@ -150,9 +151,10 @@ fun RPArchitectApp() {
             updatedAt = now
         )
 
-        projectRepository.addProject(project)
-        refreshProjects()
-        currentScreen = AppScreen.PROJECTS
+        coroutineScope.launch {
+            projectRepository.addProject(project)
+            currentScreen = AppScreen.PROJECTS
+        }
     }
 
     fun updateProject(
@@ -169,10 +171,11 @@ fun RPArchitectApp() {
             updatedAt = System.currentTimeMillis()
         )
 
-        projectRepository.updateProject(updatedProject)
-        refreshProjects()
-        selectedProject = updatedProject
-        currentScreen = AppScreen.PROJECTS
+        coroutineScope.launch {
+            projectRepository.updateProject(updatedProject)
+            selectedProject = updatedProject
+            currentScreen = AppScreen.PROJECTS
+        }
     }
 
     fun createCharacter(
@@ -203,9 +206,10 @@ fun RPArchitectApp() {
             updatedAt = now
         )
 
-        characterRepository.addCharacter(character)
-        refreshCharacters(project.id)
-        currentScreen = AppScreen.CHARACTERS
+        coroutineScope.launch {
+            characterRepository.addCharacter(character)
+            currentScreen = AppScreen.CHARACTERS
+        }
     }
 
     fun updateCharacter(
@@ -219,7 +223,6 @@ fun RPArchitectApp() {
         notes: String
     ) {
         val oldCharacter = selectedCharacter ?: return
-        val project = selectedProject ?: return
 
         val updatedCharacter = oldCharacter.copy(
             name = name,
@@ -233,11 +236,11 @@ fun RPArchitectApp() {
             updatedAt = System.currentTimeMillis()
         )
 
-        characterRepository.updateCharacter(updatedCharacter)
-        selectedCharacter = updatedCharacter
-
-        refreshCharacters(project.id)
-        currentScreen = AppScreen.CHARACTERS
+        coroutineScope.launch {
+            characterRepository.updateCharacter(updatedCharacter)
+            selectedCharacter = updatedCharacter
+            currentScreen = AppScreen.CHARACTERS
+        }
     }
 
     fun createWorldLore(
@@ -262,9 +265,10 @@ fun RPArchitectApp() {
             updatedAt = now
         )
 
-        worldLoreRepository.addWorldLore(lore)
-        refreshWorldLores(project.id)
-        currentScreen = AppScreen.WORLD_LORE
+        coroutineScope.launch {
+            worldLoreRepository.addWorldLore(lore)
+            currentScreen = AppScreen.WORLD_LORE
+        }
     }
 
     fun updateWorldLore(
@@ -275,7 +279,6 @@ fun RPArchitectApp() {
         notes: String
     ) {
         val oldLore = selectedWorldLore ?: return
-        val project = selectedProject ?: return
 
         val updatedLore = oldLore.copy(
             title = title,
@@ -286,11 +289,11 @@ fun RPArchitectApp() {
             updatedAt = System.currentTimeMillis()
         )
 
-        worldLoreRepository.updateWorldLore(updatedLore)
-        selectedWorldLore = updatedLore
-
-        refreshWorldLores(project.id)
-        currentScreen = AppScreen.WORLD_LORE
+        coroutineScope.launch {
+            worldLoreRepository.updateWorldLore(updatedLore)
+            selectedWorldLore = updatedLore
+            currentScreen = AppScreen.WORLD_LORE
+        }
     }
 
     fun createWorldEntry(
@@ -325,9 +328,10 @@ fun RPArchitectApp() {
             updatedAt = now
         )
 
-        worldEntryRepository.addEntry(entry)
-        refreshWorldEntries(project.id)
-        currentScreen = AppScreen.WORLD_ENTRIES
+        coroutineScope.launch {
+            worldEntryRepository.addEntry(entry)
+            currentScreen = AppScreen.WORLD_ENTRIES
+        }
     }
 
     fun updateWorldEntry(
@@ -343,7 +347,6 @@ fun RPArchitectApp() {
         notes: String
     ) {
         val oldEntry = selectedWorldEntry ?: return
-        val project = selectedProject ?: return
 
         val updatedEntry = oldEntry.copy(
             parentId = parentId,
@@ -359,11 +362,11 @@ fun RPArchitectApp() {
             updatedAt = System.currentTimeMillis()
         )
 
-        worldEntryRepository.updateEntry(updatedEntry)
-        selectedWorldEntry = updatedEntry
-
-        refreshWorldEntries(project.id)
-        currentScreen = AppScreen.WORLD_ENTRIES
+        coroutineScope.launch {
+            worldEntryRepository.updateEntry(updatedEntry)
+            selectedWorldEntry = updatedEntry
+            currentScreen = AppScreen.WORLD_ENTRIES
+        }
     }
 
     MaterialTheme {
@@ -394,9 +397,6 @@ fun RPArchitectApp() {
                     },
                     onProjectClick = { project ->
                         selectedProject = project
-                        refreshCharacters(project.id)
-                        refreshWorldLores(project.id)
-                        refreshWorldEntries(project.id)
                         currentScreen = AppScreen.WORKSPACE
                     },
                     onEditProject = { project ->
@@ -404,8 +404,9 @@ fun RPArchitectApp() {
                         currentScreen = AppScreen.EDIT_PROJECT
                     },
                     onDeleteProject = { projectId ->
-                        projectRepository.deleteProject(projectId)
-                        refreshProjects()
+                        coroutineScope.launch {
+                            projectRepository.deleteProject(projectId)
+                        }
                     }
                 )
             }
@@ -447,15 +448,12 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.PROJECTS
                         },
                         onCharactersClick = {
-                            refreshCharacters(project.id)
                             currentScreen = AppScreen.CHARACTERS
                         },
                         onWorldBuildingClick = {
-                            refreshWorldLores(project.id)
                             currentScreen = AppScreen.WORLD_LORE
                         },
                         onLocationsFactionsClick = {
-                            refreshWorldEntries(project.id)
                             currentScreen = AppScreen.WORLD_ENTRIES
                         }
                     )
@@ -480,8 +478,9 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.EDIT_CHARACTER
                         },
                         onDeleteCharacter = { characterId ->
-                            characterRepository.deleteCharacter(characterId)
-                            refreshCharacters(project.id)
+                            coroutineScope.launch {
+                                characterRepository.deleteCharacter(characterId)
+                            }
                         }
                     )
                 }
@@ -544,8 +543,9 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.EDIT_WORLD_LORE
                         },
                         onDeleteLore = { loreId ->
-                            worldLoreRepository.deleteWorldLore(loreId)
-                            refreshWorldLores(project.id)
+                            coroutineScope.launch {
+                                worldLoreRepository.deleteWorldLore(loreId)
+                            }
                         }
                     )
                 }
@@ -600,8 +600,9 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.EDIT_WORLD_ENTRY
                         },
                         onDeleteEntry = { entryId ->
-                            worldEntryRepository.deleteEntry(entryId)
-                            refreshWorldEntries(project.id)
+                            coroutineScope.launch {
+                                worldEntryRepository.deleteEntry(entryId)
+                            }
                         }
                     )
                 }
