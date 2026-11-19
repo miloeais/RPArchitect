@@ -1,4 +1,3 @@
-
 package com.rparchitect.app.data.repository
 
 import com.rparchitect.app.data.dao.WorldEntryDao
@@ -38,22 +37,6 @@ class WorldEntryRepository(
     }
 
     suspend fun deleteEntry(entryId: Long) {
-        val idsToDelete = mutableSetOf<Long>()
-
-        suspend fun collectChildren(parentId: Long) {
-            if (!idsToDelete.add(parentId)) return
-
-            val children = worldEntryDao.getChildrenOnce(parentId)
-
-            children.forEach { child ->
-                collectChildren(child.id)
-            }
-        }
-
-        collectChildren(entryId)
-
-        if (idsToDelete.isNotEmpty()) {
-            worldEntryDao.deleteEntriesByIds(idsToDelete.toList())
-        }
+        worldEntryDao.deleteEntryById(entryId)
     }
 }
