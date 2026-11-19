@@ -24,6 +24,26 @@ import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import java.util.UUID
 
+private val RPArchitectColorScheme = darkColorScheme(
+    primary = Color(0xFFFFFFFF),
+    onPrimary = Color(0xFF08090B),
+
+    secondary = Color(0xFFA0A2A8),
+    onSecondary = Color(0xFF08090B),
+
+    background = Color(0xFF08090B),
+    onBackground = Color(0xFFFFFFFF),
+
+    surface = Color(0xFF24262B),
+    onSurface = Color(0xFFFFFFFF),
+
+    surfaceVariant = Color(0xFF35383E),
+    onSurfaceVariant = Color(0xFFA0A2A8),
+
+    outline = Color(0xFF60636A),
+    error = Color(0xFFFF5252)
+)
+
 private enum class AppScreen {
     HOME,
     PROJECTS,
@@ -649,7 +669,9 @@ fun RPArchitectApp() {
 
     // UI
 
-    MaterialTheme {
+    MaterialTheme (
+        colorScheme = RPArchitectColorScheme
+    ) {
 
         when (currentScreen) {
 
