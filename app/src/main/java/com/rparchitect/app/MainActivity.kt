@@ -12,6 +12,8 @@ import com.rparchitect.app.data.model.RPProject
 import com.rparchitect.app.data.model.RPCharacter
 import com.rparchitect.app.data.model.RPWorldLore
 import com.rparchitect.app.data.model.RPWorldEntry
+import com.rparchitect.app.data.model.RPTemplate
+import com.rparchitect.app.data.template.PresetLibrary
 import com.rparchitect.app.data.repository.ProjectRepository
 import com.rparchitect.app.data.repository.CharacterRepository
 import com.rparchitect.app.data.repository.WorldLoreRepository
@@ -30,6 +32,8 @@ import com.rparchitect.app.ui.screens.EditWorldLoreScreen
 import com.rparchitect.app.ui.screens.WorldEntryScreen
 import com.rparchitect.app.ui.screens.CreateWorldEntryScreen
 import com.rparchitect.app.ui.screens.EditWorldEntryScreen
+import com.rparchitect.app.ui.screens.TemplateLibraryScreen
+import com.rparchitect.app.ui.screens.TemplateDetailScreen
 import kotlinx.coroutines.launch
 
 private enum class AppScreen {
@@ -46,7 +50,9 @@ private enum class AppScreen {
     EDIT_WORLD_LORE,
     WORLD_ENTRIES,
     CREATE_WORLD_ENTRY,
-    EDIT_WORLD_ENTRY
+    EDIT_WORLD_ENTRY,
+    TEMPLATE_LIBRARY,
+    TEMPLATE_DETAIL
 }
 
 class MainActivity : ComponentActivity() {
@@ -120,6 +126,10 @@ fun RPArchitectApp() {
 
     var selectedWorldEntry by remember {
         mutableStateOf<RPWorldEntry?>(null)
+    }
+
+    var selectedTemplate by remember {
+        mutableStateOf<RPTemplate?>(null)
     }
 
     val characters = allCharacters.filter {
@@ -377,7 +387,9 @@ fun RPArchitectApp() {
                     onProjectsClick = {
                         currentScreen = AppScreen.PROJECTS
                     },
-                    onTemplatesClick = {},
+                    onTemplatesClick = {
+                        currentScreen = AppScreen.TEMPLATE_LIBRARY
+                    },
                     onSettingsClick = {},
                     onRecentProjectsClick = {
                         currentScreen = AppScreen.PROJECTS
@@ -667,6 +679,34 @@ fun RPArchitectApp() {
                             )
                         }
                     )
+                }
+            }
+
+            AppScreen.TEMPLATE_LIBRARY -> {
+                TemplateLibraryScreen(
+                    templates = PresetLibrary.presets,
+                    onBackClick = {
+                        currentScreen = AppScreen.HOME
+                    },
+                    onTemplateClick = { template ->
+                        selectedTemplate = template
+                        currentScreen = AppScreen.TEMPLATE_DETAIL
+                    }
+                )
+            }
+
+            AppScreen.TEMPLATE_DETAIL -> {
+                val template = selectedTemplate
+
+                if (template != null) {
+                    TemplateDetailScreen(
+                        template = template,
+                        onBackClick = {
+                            currentScreen = AppScreen.TEMPLATE_LIBRARY
+                        }
+                    )
+                } else {
+                    currentScreen = AppScreen.TEMPLATE_LIBRARY
                 }
             }
         }
