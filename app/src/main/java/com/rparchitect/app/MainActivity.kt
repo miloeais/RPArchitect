@@ -7,7 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
-import androidx.room.Room
 import com.rparchitect.app.data.database.DatabaseProvider
 import com.rparchitect.app.data.model.RPProject
 import com.rparchitect.app.data.model.RPCharacter
