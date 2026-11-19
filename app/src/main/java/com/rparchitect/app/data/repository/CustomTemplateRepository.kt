@@ -1,6 +1,7 @@
 package com.rparchitect.app.data.repository
 
 import com.rparchitect.app.data.dao.CustomTemplateDao
+import com.rparchitect.app.data.model.CustomTemplateFieldData
 import com.rparchitect.app.data.model.RPCustomTemplate
 import com.rparchitect.app.data.model.RPCustomTemplateField
 import com.rparchitect.app.data.model.RPCustomTemplateOption
@@ -32,7 +33,6 @@ class CustomTemplateRepository(
         customTemplateDao.deleteTemplateById(templateId)
     }
 
-
     // TEMPLATE FIELDS
 
     suspend fun getFieldsByTemplate(
@@ -52,7 +52,6 @@ class CustomTemplateRepository(
     suspend fun deleteField(fieldId: String) {
         customTemplateDao.deleteFieldById(fieldId)
     }
-
 
     // CATEGORY OPTIONS
 
@@ -76,5 +75,21 @@ class CustomTemplateRepository(
 
     suspend fun deleteOptionsByField(fieldId: String) {
         customTemplateDao.deleteOptionsByField(fieldId)
+    }
+
+    // COMPLETE TEMPLATE STRUCTURE
+
+    suspend fun getCompleteTemplate(
+        templateId: String
+    ): List<CustomTemplateFieldData> {
+
+        val fields = customTemplateDao.getFieldsByTemplate(templateId)
+
+        return fields.map { field ->
+            CustomTemplateFieldData(
+                field = field,
+                options = customTemplateDao.getOptionsByField(field.id)
+            )
+        }
     }
 }
