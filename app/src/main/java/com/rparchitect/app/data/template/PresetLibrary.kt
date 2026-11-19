@@ -15,9 +15,16 @@ object PresetLibrary {
             description = "Build detailed character profiles.",
             fields = listOf(
                 RPTemplateField("name", "Character Name", TemplateFieldType.TEXT, true),
-                RPTemplateField("role", "Role", TemplateFieldType.CATEGORY),
+                RPTemplate(""),
+                RPTemplateField(
+                    "role", "Role", TemplateFieldType.CATEGORY,
+                    options = listOf("Protagonist", "Antagonist", "Supporting", "NPC")
+                ),
                 RPTemplateField("age", "Age", TemplateFieldType.NUMBER),
-                RPTemplateField("gender", "Gender", TemplateFieldType.CATEGORY),
+                RPTemplateField(
+                    "gender", "Gender", TemplateFieldType.CATEGORY,
+                    options = listOf("Male", "Female", "Other", "Unknown")
+                ),
                 RPTemplateField("appearance", "Appearance", TemplateFieldType.LONG_TEXT),
                 RPTemplateField("personality", "Personality", TemplateFieldType.LONG_TEXT),
                 RPTemplateField("background", "Background", TemplateFieldType.LONG_TEXT),
@@ -51,7 +58,10 @@ object PresetLibrary {
                 RPTemplateField("title", "Relationship Title", TemplateFieldType.TEXT, true),
                 RPTemplateField("character_a", "Character A", TemplateFieldType.TEXT, true),
                 RPTemplateField("character_b", "Character B", TemplateFieldType.TEXT, true),
-                RPTemplateField("relationship_type", "Relationship Type", TemplateFieldType.CATEGORY),
+                RPTemplateField(
+                    "relationship_type", "Relationship Type", TemplateFieldType.CATEGORY,
+                    options = listOf("Family", "Romantic", "Friendship", "Rivalry", "Professional", "Other")
+                ),
                 RPTemplateField("history", "Relationship History", TemplateFieldType.LONG_TEXT),
                 RPTemplateField("dynamics", "Relationship Dynamics", TemplateFieldType.LONG_TEXT),
                 RPTemplateField("conflicts", "Conflicts", TemplateFieldType.LONG_TEXT),
@@ -65,7 +75,10 @@ object PresetLibrary {
             description = "Document locations, organizations and factions.",
             fields = listOf(
                 RPTemplateField("name", "Name", TemplateFieldType.TEXT, true),
-                RPTemplateField("type", "Location / Faction Type", TemplateFieldType.CATEGORY),
+                RPTemplateField(
+                    "type", "Location / Faction Type", TemplateFieldType.CATEGORY,
+                    options = listOf("Country", "City", "Town", "Village", "Building", "Organization", "Faction", "Government", "Other")
+                ),
                 RPTemplateField("parent", "Parent Location / Organization", TemplateFieldType.TEXT),
                 RPTemplateField("description", "Description", TemplateFieldType.LONG_TEXT),
                 RPTemplateField("history", "History", TemplateFieldType.LONG_TEXT),
@@ -98,8 +111,14 @@ object PresetLibrary {
             description = "Plan storylines, conflicts and narrative developments.",
             fields = listOf(
                 RPTemplateField("title", "Story Arc Title", TemplateFieldType.TEXT, true),
-                RPTemplateField("genre", "Genre", TemplateFieldType.CATEGORY),
-                RPTemplateField("status", "Status", TemplateFieldType.CATEGORY),
+                RPTemplateField(
+                    "genre", "Genre", TemplateFieldType.CATEGORY,
+                    options = listOf("Fantasy", "Sci-Fi", "Romance", "Action", "Drama", "Horror", "Mystery", "Other")
+                ),
+                RPTemplateField(
+                    "status", "Status", TemplateFieldType.CATEGORY,
+                    options = listOf("Planned", "Ongoing", "Completed", "On Hold", "Cancelled")
+                ),
                 RPTemplateField("start_date", "Start Date", TemplateFieldType.DATE),
                 RPTemplateField("end_date", "End Date", TemplateFieldType.DATE),
                 RPTemplateField("summary", "Summary", TemplateFieldType.LONG_TEXT),
