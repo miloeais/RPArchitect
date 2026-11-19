@@ -197,6 +197,10 @@ fun RPArchitectApp() {
         mutableStateOf("")
     }
 
+    var newDocumentTemplate by remember {
+        mutableStateOf<RPTemplate?>(null)
+    }
+
     var previewFields by remember {
         mutableStateOf<List<DocumentPreviewField>>(emptyList())
     }
