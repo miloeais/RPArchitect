@@ -2,7 +2,6 @@
 name: RP Architect Android Build
 
 on:
-  push:
 
   workflow_dispatch:
 
