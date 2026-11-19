@@ -25,7 +25,8 @@ fun WorkspaceScreen(
     onBackClick: () -> Unit,
     onCharactersClick: () -> Unit,
     onWorldBuildingClick: () -> Unit,
-    onLocationsFactionsClick: () -> Unit
+    onLocationsFactionsClick: () -> Unit,
+    onDocumentsClick: () -> Unit
 ) {
     Column(
         modifier = Modifier
@@ -108,6 +109,15 @@ fun WorkspaceScreen(
             description = "Places, organizations and governments",
             symbol = "⌖",
             onClick = onLocationsFactionsClick
+        )
+
+        Spacer(modifier = Modifier.height(12.dp))
+
+        WorkspaceCard(
+            title = "Documents",
+            description = "Create and manage project documents",
+            symbol = "▤",
+            onClick = onDocumentsClick
         )
     }
 }
