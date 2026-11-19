@@ -634,6 +634,9 @@ fun RPArchitectApp() {
             editorValues = emptyMap()
             previewFields = emptyList()
 
+            newDocumentTitle = ""
+            newDocumentTemplate = null
+
             currentScreen = AppScreen.DOCUMENTS
         }
     }
