@@ -171,7 +171,7 @@ fun RPArchitectApp() {
     val documentFlow = remember(selectedProject?.id) {
         selectedProject?.id?.let {
             documentRepository.getDocumentsByProject(it)
-        } ?: flowOf(emptyList())
+        } ?: flowOf<List<RPDocument>>(emptyList())
     }
 
     val documents by documentFlow.collectAsState(
