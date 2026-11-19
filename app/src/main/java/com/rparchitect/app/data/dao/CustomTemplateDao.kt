@@ -1,11 +1,12 @@
 package com.rparchitect.app.data.dao
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Transaction
 import androidx.room.Update
+import com.rparchitect.app.data.model.CustomTemplateFieldData
 import com.rparchitect.app.data.model.RPCustomTemplate
 import com.rparchitect.app.data.model.RPCustomTemplateField
 import com.rparchitect.app.data.model.RPCustomTemplateOption
@@ -39,7 +40,9 @@ interface CustomTemplateDao {
         WHERE templateId = :templateId
         ORDER BY rowid ASC
     """)
-    suspend fun getFieldsByTemplate(templateId: String): List<RPCustomTemplateField>
+    suspend fun getFieldsByTemplate(
+        templateId: String
+    ): List<RPCustomTemplateField>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertField(field: RPCustomTemplateField)
@@ -50,6 +53,9 @@ interface CustomTemplateDao {
     @Query("DELETE FROM custom_template_fields WHERE id = :fieldId")
     suspend fun deleteFieldById(fieldId: String)
 
+    @Query("DELETE FROM custom_template_fields WHERE templateId = :templateId")
+    suspend fun deleteFieldsByTemplate(templateId: String)
+
 
     // CATEGORY OPTIONS
 
@@ -58,7 +64,9 @@ interface CustomTemplateDao {
         WHERE fieldId = :fieldId
         ORDER BY sortOrder ASC
     """)
-    suspend fun getOptionsByField(fieldId: String): List<RPCustomTemplateOption>
+    suspend fun getOptionsByField(
+        fieldId: String
+    ): List<RPCustomTemplateOption>
 
     @Insert(onConflict = OnConflictStrategy.ABORT)
     suspend fun insertOption(option: RPCustomTemplateOption)
@@ -71,4 +79,30 @@ interface CustomTemplateDao {
 
     @Query("DELETE FROM custom_template_options WHERE fieldId = :fieldId")
     suspend fun deleteOptionsByField(fieldId: String)
+
+
+    // SAVE COMPLETE TEMPLATE
+
+    @Transaction
+    suspend fun saveCompleteTemplate(
+        template: RPCustomTemplate,
+        fields: List<CustomTemplateFieldData>
+    ) {
+        val existing = getTemplateById(template.id)
+
+        if (existing == null) {
+            insertTemplate(template)
+        } else {
+            updateTemplate(template)
+            deleteFieldsByTemplate(template.id)
+        }
+
+        fields.forEach { data ->
+            insertField(data.field)
+
+            data.options.forEach { option ->
+                insertOption(option)
+            }
+        }
+    }
 }
