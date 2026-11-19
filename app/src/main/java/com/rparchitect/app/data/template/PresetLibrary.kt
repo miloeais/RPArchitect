@@ -15,7 +15,6 @@ object PresetLibrary {
             description = "Build detailed character profiles.",
             fields = listOf(
                 RPTemplateField("name", "Character Name", TemplateFieldType.TEXT, true),
-                RPTemplate(""),
                 RPTemplateField(
                     "role", "Role", TemplateFieldType.CATEGORY,
                     options = listOf("Protagonist", "Antagonist", "Supporting", "NPC")
