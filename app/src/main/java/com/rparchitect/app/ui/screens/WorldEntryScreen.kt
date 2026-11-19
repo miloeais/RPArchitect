@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -37,8 +38,67 @@ fun WorldEntryScreen(
         mutableStateOf<RPWorldEntry?>(null)
     }
 
+    val expandedEntries = remember {
+        mutableStateListOf<Long>()
+    }
+
     val entryNames = remember(entries) {
         entries.associate { it.id to it.name }
+    }
+
+    val entriesByParent = remember(entries) {
+        entries.groupBy { it.parentId }
+    }
+
+    val validIds = remember(entries) {
+        entries.map { it.id }.toSet()
+    }
+
+    val rootEntries = remember(entries) {
+        entries.filter {
+            it.parentId == null || it.parentId !in validIds
+        }
+    }
+
+    val visibleEntries = remember(
+        entries,
+        expandedEntries.toList()
+    ) {
+        val result = mutableListOf<Pair<RPWorldEntry, Int>>()
+        val visited = mutableSetOf<Long>()
+
+        fun addChildren(
+            parentId: Long?,
+            depth: Int
+        ) {
+            val children = if (parentId == null) {
+                rootEntries
+            } else {
+                entriesByParent[parentId].orEmpty()
+            }
+
+            children.forEach { entry ->
+                if (visited.add(entry.id)) {
+                    result.add(entry to depth)
+
+                    if (entry.id in expandedEntries) {
+                        addChildren(entry.id, depth + 1)
+                    }
+                }
+            }
+        }
+
+        addChildren(null, 0)
+
+        // Paparkan rekod yang terperangkap dalam
+        // circular hierarchy supaya tidak tersembunyi.
+        entries.forEach { entry ->
+            if (entry.id !in visited) {
+                result.add(entry to 0)
+            }
+        }
+
+        result
     }
 
     Column(
@@ -72,7 +132,9 @@ fun WorldEntryScreen(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
                 Text(
                     "WORLD DIRECTORY",
                     color = EntrySecondary,
@@ -135,15 +197,22 @@ fun WorldEntryScreen(
             }
         } else {
             LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 items(
-                    items = entries,
-                    key = { it.id }
-                ) { entry ->
+                    items = visibleEntries,
+                    key = { it.first.id }
+                ) { (entry, depth) ->
+
+                    val hasChildren =
+                        entriesByParent[entry.id].orEmpty().isNotEmpty()
 
                     Card(
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(
+                                start = (depth * 18).dp
+                            ),
                         shape = RoundedCornerShape(15.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = EntryCard
@@ -152,22 +221,55 @@ fun WorldEntryScreen(
                         Row(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(start = 16.dp, end = 8.dp),
+                                .padding(
+                                    start = 10.dp,
+                                    end = 8.dp
+                                ),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
+                            if (hasChildren) {
+                                TextButton(
+                                    onClick = {
+                                        if (entry.id in expandedEntries) {
+                                            expandedEntries.remove(entry.id)
+                                        } else {
+                                            expandedEntries.add(entry.id)
+                                        }
+                                    },
+                                    contentPadding = PaddingValues(4.dp),
+                                    modifier = Modifier.size(36.dp)
+                                ) {
+                                    Text(
+                                        if (entry.id in expandedEntries) {
+                                            "▼"
+                                        } else {
+                                            "▶"
+                                        },
+                                        color = EntryAccent,
+                                        fontSize = 12.sp
+                                    )
+                                }
+                            } else {
+                                Spacer(
+                                    modifier = Modifier.width(36.dp)
+                                )
+                            }
+
                             Column(
                                 modifier = Modifier
                                     .weight(1f)
-                                    .padding(vertical = 16.dp)
+                                    .padding(vertical = 15.dp)
                             ) {
                                 Text(
                                     entry.name,
                                     color = Color.White,
-                                    fontSize = 16.sp,
+                                    fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold
                                 )
 
-                                Spacer(modifier = Modifier.height(5.dp))
+                                Spacer(
+                                    modifier = Modifier.height(5.dp)
+                                )
 
                                 Text(
                                     entry.type,
@@ -177,24 +279,36 @@ fun WorldEntryScreen(
 
                                 entry.parentId?.let { parentId ->
                                     entryNames[parentId]?.let { parentName ->
-                                        Spacer(modifier = Modifier.height(5.dp))
+                                        Spacer(
+                                            modifier = Modifier.height(5.dp)
+                                        )
 
                                         Text(
                                             "Under: $parentName",
                                             color = EntrySecondary,
-                                            fontSize = 11.sp
+                                            fontSize = 10.sp
                                         )
                                     }
                                 }
 
                                 if (entry.description.isNotBlank()) {
-                                    Spacer(modifier = Modifier.height(6.dp))
+                                    Spacer(
+                                        modifier = Modifier.height(6.dp)
+                                    )
 
                                     Text(
                                         entry.description.take(100),
                                         color = EntrySecondary,
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp
+                                    )
+                                }
+
+                                if (hasChildren) {
+                                    Text(
+                                        "${entriesByParent[entry.id].orEmpty().size} sub-records",
+                                        color = EntrySecondary,
+                                        fontSize = 10.sp
                                     )
                                 }
                             }
@@ -219,7 +333,9 @@ fun WorldEntryScreen(
                                     }
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = {
+                                            Text("Edit")
+                                        },
                                         onClick = {
                                             menuEntry = null
                                             onEditEntry(entry)
@@ -264,6 +380,7 @@ fun WorldEntryScreen(
                 TextButton(
                     onClick = {
                         onDeleteEntry(entry.id)
+                        expandedEntries.remove(entry.id)
                         entryToDelete = null
                     }
                 ) {
