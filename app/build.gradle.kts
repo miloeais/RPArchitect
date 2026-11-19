@@ -21,9 +21,21 @@ android {
         compose = true
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(
+                System.getenv("RELEASE_KEYSTORE_PATH") ?: "release-keystore.jks"
+            )
+            storePassword = System.getenv("RELEASE_KEYSTORE_PASSWORD") ?: ""
+            keyAlias = System.getenv("RELEASE_KEY_ALIAS") ?: ""
+            keyPassword = System.getenv("RELEASE_KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         release {
             isMinifyEnabled = false
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 
