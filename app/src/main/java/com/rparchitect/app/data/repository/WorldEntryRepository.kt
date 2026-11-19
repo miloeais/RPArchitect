@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.data.repository
 
 import com.rparchitect.app.data.model.RPWorldEntry
@@ -37,8 +38,22 @@ class WorldEntryRepository {
     }
 
     fun deleteEntry(entryId: Long) {
+        val idsToDelete = mutableSetOf<Long>()
+
+        fun collectChildren(parentId: Long) {
+            if (!idsToDelete.add(parentId)) return
+
+            entries
+                .filter { it.parentId == parentId }
+                .forEach { child ->
+                    collectChildren(child.id)
+                }
+        }
+
+        collectChildren(entryId)
+
         entries.removeAll {
-            it.id == entryId || it.parentId == entryId
+            it.id in idsToDelete
         }
     }
 }
