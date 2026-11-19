@@ -54,5 +54,6 @@ data class RPDocumentField(
     val type: String,
     val value: String = "",
     val required: Boolean = false,
-    val sortOrder: Int = 0
+    val sortOrder: Int = 0,
+    val options: String = "[]"
 )
