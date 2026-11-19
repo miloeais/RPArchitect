@@ -110,21 +110,25 @@ fun RPArchitectApp() {
                 )
             }
 
-            AppScreen.PROJECTS -> {
-                ProjectManagerScreen(
-                    projects = projects,
-                    onBackClick = {
-                        currentScreen = AppScreen.HOME
-                    },
-                    onCreateProject = {
-                        currentScreen = AppScreen.CREATE_PROJECT
-                    },
-                    onProjectClick = { project ->
-                        selectedProject = project
-                        currentScreen = AppScreen.EDIT_PROJECT
-                    }
-                )
-            }
+             AppScreen.PROJECTS -> {
+                 ProjectManagerScreen(
+                     projects = projects,
+                     onBackClick = {
+                         currentScreen = AppScreen.HOME
+                     },
+                 onCreateProject = {
+                     currentScreen = AppScreen.CREATE_PROJECT
+                     },
+                 onProjectClick = { project ->
+                     selectedProject = project
+                     currentScreen = AppScreen.EDIT_PROJECT
+                     },
+                 onDeleteProject = { projectId ->
+                     repository.deleteProject(projectId)
+                     refreshProjects()
+                     }
+                 )
+           }
 
             AppScreen.CREATE_PROJECT -> {
                 CreateProjectScreen(
