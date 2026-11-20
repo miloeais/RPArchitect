@@ -14,10 +14,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPCharacter
 
-private val EditCharacterBackground = Color(0xFF101116)
-private val EditCharacterCard = Color(0xFF1B1D26)
-private val EditCharacterAccent = Color(0xFF9B8CFF)
-private val EditCharacterSecondary = Color(0xFF9A9BA8)
+private val EditCharacterBackground = Color(0xFF08090B)
+private val EditCharacterCard = Color(0xFF24262B)
+private val EditCharacterAccent = Color(0xFFFFFFFF)
+private val EditCharacterSecondary = Color(0xFFA0A2A8)
 
 private val editCharacterRoles = listOf(
     "Main Character",
