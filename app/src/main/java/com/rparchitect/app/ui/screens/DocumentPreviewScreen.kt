@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.ui.screens
 
 import androidx.compose.foundation.layout.*
@@ -8,6 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rparchitect.app.data.export.DocumentPreviewField
+import com.rparchitect.app.ui.theme.RPArchitectColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -19,27 +21,42 @@ fun DocumentPreviewScreen(
     onExportMarkdown: () -> Unit
 ) {
     Scaffold(
+        containerColor = RPArchitectColors.Background,
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Document Preview")
+                    Text(
+                        "Document Preview",
+                        color = RPArchitectColors.PrimaryText
+                    )
                 },
                 navigationIcon = {
                     TextButton(onClick = onBackClick) {
-                        Text("Back")
+                        Text(
+                            "Back",
+                            color = RPArchitectColors.PrimaryText
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = RPArchitectColors.Background
+                )
             )
         },
         bottomBar = {
             Surface(
-                tonalElevation = 3.dp
+                color = RPArchitectColors.Background,
+                tonalElevation = 0.dp
             ) {
                 Button(
                     onClick = onExportMarkdown,
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = RPArchitectColors.IconBackground,
+                        contentColor = RPArchitectColors.PrimaryText
+                    )
                 ) {
                     Text("Export Markdown")
                 }
@@ -58,16 +75,19 @@ fun DocumentPreviewScreen(
 
             Text(
                 text = title,
-                style = MaterialTheme.typography.headlineMedium
+                style = MaterialTheme.typography.headlineMedium,
+                color = RPArchitectColors.PrimaryText
             )
 
             Text(
                 text = "Template: $templateName",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = RPArchitectColors.SecondaryText
             )
 
-            HorizontalDivider()
+            HorizontalDivider(
+                color = RPArchitectColors.Outline
+            )
 
             fields.forEach { field ->
 
@@ -77,7 +97,8 @@ fun DocumentPreviewScreen(
 
                     Text(
                         text = field.label,
-                        style = MaterialTheme.typography.titleMedium
+                        style = MaterialTheme.typography.titleMedium,
+                        color = RPArchitectColors.PrimaryText
                     )
 
                     Text(
@@ -86,9 +107,9 @@ fun DocumentPreviewScreen(
                         },
                         style = MaterialTheme.typography.bodyLarge,
                         color = if (field.value.isBlank()) {
-                            MaterialTheme.colorScheme.onSurfaceVariant
+                            RPArchitectColors.SecondaryText
                         } else {
-                            MaterialTheme.colorScheme.onSurface
+                            RPArchitectColors.PrimaryText
                         }
                     )
                 }
