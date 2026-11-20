@@ -13,10 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val CreateCharacterBackground = Color(0xFF101116)
-private val CreateCharacterCard = Color(0xFF1B1D26)
-private val CreateCharacterAccent = Color(0xFF9B8CFF)
-private val CreateCharacterSecondary = Color(0xFF9A9BA8)
+private val CreateCharacterBackground = Color(0xFF08090B)
+private val CreateCharacterCard = Color(0xFF24262B)
+private val CreateCharacterAccent = Color(0xFFFFFFFF)
+private val CreateCharacterSecondary = Color(0xFFA0A2A8)
 
 private val characterRoles = listOf(
     "Main Character",
