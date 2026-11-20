@@ -15,12 +15,16 @@ import androidx.compose.ui.platform.LocalContext
 import com.rparchitect.app.data.database.DatabaseProvider
 import com.rparchitect.app.data.export.DocumentMarkdownExporter
 import com.rparchitect.app.data.export.DocumentPreviewField
+import com.rparchitect.app.data.export.ExportController
+import com.rparchitect.app.data.export.ExportRequest
 import com.rparchitect.app.data.model.*
 import com.rparchitect.app.data.model.RPTemplate
 import com.rparchitect.app.data.repository.*
 import com.rparchitect.app.data.template.PresetLibrary
+import com.rparchitect.app.ui.components.ExportResultDialog
 import com.rparchitect.app.ui.screens.*
 import kotlinx.coroutines.flow.flowOf
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import java.util.UUID
 
@@ -87,6 +91,14 @@ fun RPArchitectApp() {
 
     var markdownToExport by remember {
         mutableStateOf("")
+    }
+
+    var exportDialogMessage by remember {
+        mutableStateOf<String?>(null)
+    }
+
+    var exportDialogIsError by remember {
+        mutableStateOf(false)
     }
 
     val exportLauncher = rememberLauncherForActivityResult(
@@ -667,301 +679,331 @@ fun RPArchitectApp() {
         }
     }
 
-    // UI
+    // EXPORT ENGINE
 
-    MaterialTheme (
-        colorScheme = RPArchitectColorScheme
-    ) {
+    ExportController(
+        characters = allCharacters,
+        worldLores = allWorldLores,
+        worldEntries = allWorldEntries,
 
-        when (currentScreen) {
+        loadProjectDocuments = { projectId ->
+            documentRepository
+                .getDocumentsByProject(projectId)
+                .first()
+        },
 
-            AppScreen.HOME -> {
-                HomeScreen(
-                    onProjectsClick = {
-                        currentScreen = AppScreen.PROJECTS
-                    },
-                    onTemplatesClick = {
-                        currentScreen = AppScreen.TEMPLATE_LIBRARY
-                    },
-                    onSettingsClick = {},
-                    onRecentProjectsClick = {
-                        currentScreen = AppScreen.PROJECTS
-                    }
-                )
-            }
+        loadDocumentFields = { document ->
+            documentRepository.getFieldsByDocument(document.id)
+        },
 
-            AppScreen.PROJECTS -> {
-                ProjectManagerScreen(
-                    projects = projects,
-                    onBackClick = {
-                        currentScreen = AppScreen.HOME
-                    },
-                    onCreateProject = {
-                        currentScreen = AppScreen.CREATE_PROJECT
-                    },
-                    onProjectClick = { project ->
-                        selectedProject = project
-                        currentScreen = AppScreen.WORKSPACE
-                    },
-                    onEditProject = { project ->
-                        selectedProject = project
-                        currentScreen = AppScreen.EDIT_PROJECT
-                    },
-                    onDeleteProject = { projectId ->
-                        coroutineScope.launch {
-                            projectRepository.deleteProject(projectId)
+        onExportCompleted = { count ->
+            exportDialogIsError = false
+            exportDialogMessage = "$count Markdown files exported successfully."
+        },
 
-                            if (selectedProject?.id == projectId) {
-                                selectedProject = null
-                            }
-                        }
-                    }
-                )
-            }
+        onExportError = { message ->
+            exportDialogIsError = true
+            exportDialogMessage = message
+        }
 
-            AppScreen.CREATE_PROJECT -> {
-                CreateProjectScreen(
-                    onBackClick = {
-                        currentScreen = AppScreen.PROJECTS
-                    },
-                    onCreateClick = { name, description, genre ->
-                        createProject(name, description, genre)
-                    }
-                )
-            }
+    ) { requestExport ->
 
-            AppScreen.EDIT_PROJECT -> {
-                val project = selectedProject
+        MaterialTheme(
+            colorScheme = RPArchitectColorScheme
+        ) {
 
-                if (project != null) {
-                    EditProjectScreen(
-                        project = project,
-                        onBackClick = {
+            when (currentScreen) {
+
+                AppScreen.HOME -> {
+                    HomeScreen(
+                        onProjectsClick = {
                             currentScreen = AppScreen.PROJECTS
                         },
-                        onSaveClick = { name, description, genre ->
-                            updateProject(name, description, genre)
+                        onTemplatesClick = {
+                            currentScreen = AppScreen.TEMPLATE_LIBRARY
+                        },
+                        onSettingsClick = {},
+                        onRecentProjectsClick = {
+                            currentScreen = AppScreen.PROJECTS
                         }
                     )
                 }
-            }
 
-            AppScreen.WORKSPACE -> {
-                val project = selectedProject
-
-                if (project != null) {
-                    WorkspaceScreen(
-                        project = project,
+                AppScreen.PROJECTS -> {
+                    ProjectManagerScreen(
+                        projects = projects,
                         onBackClick = {
-                            currentScreen = AppScreen.PROJECTS
+                            currentScreen = AppScreen.HOME
                         },
-                        onCharactersClick = {
-                            currentScreen = AppScreen.CHARACTERS
+                        onCreateProject = {
+                            currentScreen = AppScreen.CREATE_PROJECT
                         },
-                        onWorldBuildingClick = {
-                            currentScreen = AppScreen.WORLD_LORE
-                        },
-                        onLocationsFactionsClick = {
-                            currentScreen = AppScreen.WORLD_ENTRIES
-                        },
-                        onDocumentsClick = {
-                            currentScreen = AppScreen.DOCUMENTS
-                        }
-                    )
-                }
-            }
-
-            AppScreen.CHARACTERS -> {
-                val project = selectedProject
-
-                if (project != null) {
-                    CharacterScreen(
-                        projectName = project.name,
-                        characters = characters,
-                        onBackClick = {
+                        onProjectClick = { project ->
+                            selectedProject = project
                             currentScreen = AppScreen.WORKSPACE
                         },
-                        onCreateCharacter = {
-                            currentScreen = AppScreen.CREATE_CHARACTER
+                        onEditProject = { project ->
+                            selectedProject = project
+                            currentScreen = AppScreen.EDIT_PROJECT
                         },
-                        onEditCharacter = { character ->
-                            selectedCharacter = character
-                            currentScreen = AppScreen.EDIT_CHARACTER
-                        },
-                        onDeleteCharacter = { characterId ->
+                        onDeleteProject = { projectId ->
                             coroutineScope.launch {
-                                characterRepository.deleteCharacter(characterId)
+                                projectRepository.deleteProject(projectId)
+
+                                if (selectedProject?.id == projectId) {
+                                    selectedProject = null
+                                }
                             }
+                        },
+                        onExportProject = { project ->
+                            requestExport(
+                                ExportRequest.Project(project)
+                            )
                         }
                     )
                 }
-            }
 
-            AppScreen.CREATE_CHARACTER -> {
-                CreateCharacterScreen(
-                    onBackClick = {
-                        currentScreen = AppScreen.CHARACTERS
-                    },
-                    onCreateClick = {
-                        name, role, age, gender,
-                        personality, background, appearance, notes ->
+                AppScreen.CREATE_PROJECT -> {
+                    CreateProjectScreen(
+                        onBackClick = {
+                            currentScreen = AppScreen.PROJECTS
+                        },
+                        onCreateClick = { name, description, genre ->
+                            createProject(name, description, genre)
+                        }
+                    )
+                }
 
-                        createCharacter(
-                            name, role, age, gender,
-                            personality, background, appearance, notes
+                AppScreen.EDIT_PROJECT -> {
+                    val project = selectedProject
+
+                    if (project != null) {
+                        EditProjectScreen(
+                            project = project,
+                            onBackClick = {
+                                currentScreen = AppScreen.PROJECTS
+                            },
+                            onSaveClick = { name, description, genre ->
+                                updateProject(name, description, genre)
+                            }
                         )
                     }
-                )
-            }
+                }
 
-            AppScreen.EDIT_CHARACTER -> {
-                val character = selectedCharacter
+                AppScreen.WORKSPACE -> {
+                    val project = selectedProject
 
-                if (character != null) {
-                    EditCharacterScreen(
-                        character = character,
+                    if (project != null) {
+                        WorkspaceScreen(
+                            project = project,
+                            onBackClick = {
+                                currentScreen = AppScreen.PROJECTS
+                            },
+                            onCharactersClick = {
+                                currentScreen = AppScreen.CHARACTERS
+                            },
+                            onWorldBuildingClick = {
+                                currentScreen = AppScreen.WORLD_LORE
+                            },
+                            onLocationsFactionsClick = {
+                                currentScreen = AppScreen.WORLD_ENTRIES
+                            },
+                            onDocumentsClick = {
+                                currentScreen = AppScreen.DOCUMENTS
+                            }
+                        )
+                    }
+                }
+
+                AppScreen.CHARACTERS -> {
+                    val project = selectedProject
+
+                    if (project != null) {
+                        CharacterScreen(
+                            projectName = project.name,
+                            characters = characters,
+                            onBackClick = {
+                                currentScreen = AppScreen.WORKSPACE
+                            },
+                            onCreateCharacter = {
+                                currentScreen = AppScreen.CREATE_CHARACTER
+                            },
+                            onEditCharacter = { character ->
+                                selectedCharacter = character
+                                currentScreen = AppScreen.EDIT_CHARACTER
+                            },
+                            onDeleteCharacter = { characterId ->
+                                coroutineScope.launch {
+                                    characterRepository.deleteCharacter(characterId)
+                                }
+                            },
+                            onExportCharacter = { character ->
+                                requestExport(
+                                    ExportRequest.CharacterRecord(character)
+                                )
+                            },
+                            onExportAllCharacters = {
+                                requestExport(
+                                    ExportRequest.CharacterBulk(characters)
+                                )
+                            }
+                        )
+                    }
+                }
+
+                AppScreen.CREATE_CHARACTER -> {
+                    CreateCharacterScreen(
                         onBackClick = {
                             currentScreen = AppScreen.CHARACTERS
                         },
-                        onSaveClick = {
+                        onCreateClick = {
                             name, role, age, gender,
                             personality, background, appearance, notes ->
 
-                            updateCharacter(
+                            createCharacter(
                                 name, role, age, gender,
                                 personality, background, appearance, notes
                             )
                         }
                     )
                 }
-            }
 
-            AppScreen.WORLD_LORE -> {
-                val project = selectedProject
+                AppScreen.EDIT_CHARACTER -> {
+                    val character = selectedCharacter
 
-                if (project != null) {
-                    WorldLoreScreen(
-                        projectName = project.name,
-                        worldLores = worldLores,
-                        onBackClick = {
-                            currentScreen = AppScreen.WORKSPACE
-                        },
-                        onCreateLore = {
-                            currentScreen = AppScreen.CREATE_WORLD_LORE
-                        },
-                        onEditLore = { lore ->
-                            selectedWorldLore = lore
-                            currentScreen = AppScreen.EDIT_WORLD_LORE
-                        },
-                        onDeleteLore = { loreId ->
-                            coroutineScope.launch {
-                                worldLoreRepository.deleteWorldLore(loreId)
+                    if (character != null) {
+                        EditCharacterScreen(
+                            character = character,
+                            onBackClick = {
+                                currentScreen = AppScreen.CHARACTERS
+                            },
+                            onSaveClick = {
+                                name, role, age, gender,
+                                personality, background, appearance, notes ->
+
+                                updateCharacter(
+                                    name, role, age, gender,
+                                    personality, background, appearance, notes
+                                )
                             }
-                        }
-                    )
-                }
-            }
-
-            AppScreen.CREATE_WORLD_LORE -> {
-                CreateWorldLoreScreen(
-                    onBackClick = {
-                        currentScreen = AppScreen.WORLD_LORE
-                    },
-                    onCreateClick = { title, history, culture, rules, notes ->
-                        createWorldLore(
-                            title, history, culture, rules, notes
                         )
                     }
-                )
-            }
+                }
 
-            AppScreen.EDIT_WORLD_LORE -> {
-                val lore = selectedWorldLore
+                AppScreen.WORLD_LORE -> {
+                    val project = selectedProject
 
-                if (lore != null) {
-                    EditWorldLoreScreen(
-                        worldLore = lore,
+                    if (project != null) {
+                        WorldLoreScreen(
+                            projectName = project.name,
+                            worldLores = worldLores,
+                            onBackClick = {
+                                currentScreen = AppScreen.WORKSPACE
+                            },
+                            onCreateLore = {
+                                currentScreen = AppScreen.CREATE_WORLD_LORE
+                            },
+                            onEditLore = { lore ->
+                                selectedWorldLore = lore
+                                currentScreen = AppScreen.EDIT_WORLD_LORE
+                            },
+                            onDeleteLore = { loreId ->
+                                coroutineScope.launch {
+                                    worldLoreRepository.deleteWorldLore(loreId)
+                                }
+                            },
+                            onExportLore = { lore ->
+                                requestExport(
+                                    ExportRequest.WorldLoreRecord(lore)
+                                )
+                            },
+                            onExportAllLores = {
+                                requestExport(
+                                    ExportRequest.WorldLoreBulk(worldLores)
+                                )
+                            }
+                        )
+                    }
+                }
+
+                AppScreen.CREATE_WORLD_LORE -> {
+                    CreateWorldLoreScreen(
                         onBackClick = {
                             currentScreen = AppScreen.WORLD_LORE
                         },
-                        onSaveClick = { title, history, culture, rules, notes ->
-                            updateWorldLore(
+                        onCreateClick = { title, history, culture, rules, notes ->
+                            createWorldLore(
                                 title, history, culture, rules, notes
                             )
                         }
                     )
                 }
-            }
 
-            AppScreen.WORLD_ENTRIES -> {
-                val project = selectedProject
+                AppScreen.EDIT_WORLD_LORE -> {
+                    val lore = selectedWorldLore
 
-                if (project != null) {
-                    WorldEntryScreen(
-                        projectName = project.name,
-                        entries = worldEntries,
-                        onBackClick = {
-                            currentScreen = AppScreen.WORKSPACE
-                        },
-                        onCreateEntry = {
-                            currentScreen = AppScreen.CREATE_WORLD_ENTRY
-                        },
-                        onEditEntry = { entry ->
-                            selectedWorldEntry = entry
-                            currentScreen = AppScreen.EDIT_WORLD_ENTRY
-                        },
-                        onDeleteEntry = { entryId ->
-                            coroutineScope.launch {
-                                worldEntryRepository.deleteEntry(entryId)
+                    if (lore != null) {
+                        EditWorldLoreScreen(
+                            worldLore = lore,
+                            onBackClick = {
+                                currentScreen = AppScreen.WORLD_LORE
+                            },
+                            onSaveClick = { title, history, culture, rules, notes ->
+                                updateWorldLore(
+                                    title, history, culture, rules, notes
+                                )
                             }
-                        }
-                    )
-                }
-            }
-
-            AppScreen.CREATE_WORLD_ENTRY -> {
-                CreateWorldEntryScreen(
-                    entries = worldEntries,
-                    onBackClick = {
-                        currentScreen = AppScreen.WORLD_ENTRIES
-                    },
-                    onCreateClick = {
-                        parentId, name, type, description,
-                        history, government, leader, headquarters,
-                        territory, notes ->
-
-                        createWorldEntry(
-                            parentId,
-                            name,
-                            type,
-                            description,
-                            history,
-                            government,
-                            leader,
-                            headquarters,
-                            territory,
-                            notes
                         )
                     }
-                )
-            }
+                }
 
-            AppScreen.EDIT_WORLD_ENTRY -> {
-                val entry = selectedWorldEntry
+                AppScreen.WORLD_ENTRIES -> {
+                    val project = selectedProject
 
-                if (entry != null) {
-                    EditWorldEntryScreen(
-                        entry = entry,
+                    if (project != null) {
+                        WorldEntryScreen(
+                            projectName = project.name,
+                            entries = worldEntries,
+                            onBackClick = {
+                                currentScreen = AppScreen.WORKSPACE
+                            },
+                            onCreateEntry = {
+                                currentScreen = AppScreen.CREATE_WORLD_ENTRY
+                            },
+                            onEditEntry = { entry ->
+                                selectedWorldEntry = entry
+                                currentScreen = AppScreen.EDIT_WORLD_ENTRY
+                            },
+                            onDeleteEntry = { entryId ->
+                                coroutineScope.launch {
+                                    worldEntryRepository.deleteEntry(entryId)
+                                }
+                            },
+                            onExportEntry = { entry, includeChildren ->
+                                requestExport(
+                                    ExportRequest.WorldEntryRecord(
+                                        entry = entry,
+                                        allEntries = worldEntries,
+                                        includeChildren = includeChildren
+                                    )
+                                )
+                            }
+                        )
+                    }
+                }
+
+                AppScreen.CREATE_WORLD_ENTRY -> {
+                    CreateWorldEntryScreen(
                         entries = worldEntries,
                         onBackClick = {
                             currentScreen = AppScreen.WORLD_ENTRIES
                         },
-                        onUpdateClick = {
+                        onCreateClick = {
                             parentId, name, type, description,
                             history, government, leader, headquarters,
                             territory, notes ->
 
-                            updateWorldEntry(
+                            createWorldEntry(
                                 parentId,
                                 name,
                                 type,
@@ -976,252 +1018,294 @@ fun RPArchitectApp() {
                         }
                     )
                 }
-            }
 
-            // TEMPLATE LIBRARY
+                AppScreen.EDIT_WORLD_ENTRY -> {
+                    val entry = selectedWorldEntry
 
-            AppScreen.TEMPLATE_LIBRARY -> {
-                TemplateLibraryScreen(
-                    templates = libraryTemplates,
-                    onBackClick = {
-                        currentScreen = AppScreen.HOME
-                    },
-                    onTemplateClick = { template ->
+                    if (entry != null) {
+                        EditWorldEntryScreen(
+                            entry = entry,
+                            entries = worldEntries,
+                            onBackClick = {
+                                currentScreen = AppScreen.WORLD_ENTRIES
+                            },
+                            onUpdateClick = {
+                                parentId, name, type, description,
+                                history, government, leader, headquarters,
+                                territory, notes ->
 
-                        when {
-                            template.id.startsWith("custom:") -> {
-                                val customId = template.id.removePrefix("custom:")
+                                updateWorldEntry(
+                                    parentId,
+                                    name,
+                                    type,
+                                    description,
+                                    history,
+                                    government,
+                                    leader,
+                                    headquarters,
+                                    territory,
+                                    notes
+                                )
+                            }
+                        )
+                    }
+                }
 
-                                coroutineScope.launch {
-                                    val record = customTemplateRepository
-                                        .getTemplateById(customId)
+                // TEMPLATE LIBRARY
 
-                                    if (record != null) {
-                                        val fieldData = customTemplateRepository
-                                            .getCompleteTemplate(customId)
+                AppScreen.TEMPLATE_LIBRARY -> {
+                    TemplateLibraryScreen(
+                        templates = libraryTemplates,
+                        onBackClick = {
+                            currentScreen = AppScreen.HOME
+                        },
+                        onTemplateClick = { template ->
 
-                                        val templateFields = fieldData.map { data ->
-                                            RPTemplateField(
-                                                id = data.field.id,
-                                                label = data.field.label,
-                                                type = runCatching {
-                                                    TemplateFieldType.valueOf(
-                                                        data.field.type
-                                                    )
-                                                }.getOrDefault(TemplateFieldType.TEXT),
-                                                required = data.field.required,
-                                                options = data.options
-                                                    .sortedBy { it.sortOrder }
-                                                    .map { it.value }
+                            when {
+                                template.id.startsWith("custom:") -> {
+                                    val customId = template.id.removePrefix("custom:")
+
+                                    coroutineScope.launch {
+                                        val record = customTemplateRepository
+                                            .getTemplateById(customId)
+
+                                        if (record != null) {
+                                            val fieldData = customTemplateRepository
+                                                .getCompleteTemplate(customId)
+
+                                            val templateFields = fieldData.map { data ->
+                                                RPTemplateField(
+                                                    id = data.field.id,
+                                                    label = data.field.label,
+                                                    type = runCatching {
+                                                        TemplateFieldType.valueOf(
+                                                            data.field.type
+                                                        )
+                                                    }.getOrDefault(TemplateFieldType.TEXT),
+                                                    required = data.field.required,
+                                                    options = data.options
+                                                        .sortedBy { it.sortOrder }
+                                                        .map { it.value }
+                                                )
+                                            }
+
+                                            selectedCustomTemplate = record
+                                            selectedCustomFields = fieldData
+
+                                            selectedTemplate = RPTemplate(
+                                                id = "custom:${record.id}",
+                                                name = record.name,
+                                                description = record.description,
+                                                fields = templateFields,
+                                                isCustom = true
                                             )
+
+                                            currentScreen = AppScreen.TEMPLATE_DETAIL
                                         }
-
-                                        selectedCustomTemplate = record
-                                        selectedCustomFields = fieldData
-
-                                        selectedTemplate = RPTemplate(
-                                            id = "custom:${record.id}",
-                                            name = record.name,
-                                            description = record.description,
-                                            fields = templateFields,
-                                            isCustom = true
-                                        )
-
-                                        currentScreen = AppScreen.TEMPLATE_DETAIL
                                     }
                                 }
-                            }
 
-                            template.isCustom &&
-                                template.name == "Custom Template" &&
-                                template.fields.isEmpty() -> {
-
-                                selectedCustomTemplate = null
-                                selectedCustomFields = emptyList()
-                                currentScreen = AppScreen.CUSTOM_TEMPLATE_BUILDER
-                            }
-
-                            else -> {
-                                selectedTemplate = template
-                                currentScreen = AppScreen.TEMPLATE_DETAIL
-                            }
-                        }
-                    }
-                )
-            }
-
-            AppScreen.TEMPLATE_DETAIL -> {
-                val template = selectedTemplate
-
-                if (template != null) {
-                    TemplateDetailScreen(
-                        template = template,
-                        onBackClick = {
-                            currentScreen = AppScreen.TEMPLATE_LIBRARY
-                        },
-                        onEditClick = {
-                            if (template.isCustom) {
-                                currentScreen = AppScreen.CUSTOM_TEMPLATE_BUILDER
-                            }
-                        },
-                        onDeleteClick = {
-                            val customId = selectedCustomTemplate?.id
-
-                            if (customId != null) {
-                                coroutineScope.launch {
-                                    customTemplateRepository.deleteTemplate(customId)
+                                template.isCustom &&
+                                    template.name == "Custom Template" &&
+                                    template.fields.isEmpty() -> {
 
                                     selectedCustomTemplate = null
                                     selectedCustomFields = emptyList()
-                                    selectedTemplate = null
+                                    currentScreen = AppScreen.CUSTOM_TEMPLATE_BUILDER
+                                }
 
-                                    currentScreen = AppScreen.TEMPLATE_LIBRARY
+                                else -> {
+                                    selectedTemplate = template
+                                    currentScreen = AppScreen.TEMPLATE_DETAIL
                                 }
                             }
                         }
                     )
-                } else {
-                    currentScreen = AppScreen.TEMPLATE_LIBRARY
                 }
-            }
 
-            AppScreen.CUSTOM_TEMPLATE_BUILDER -> {
-                CustomTemplateBuilderScreen(
-                    existingTemplate = selectedCustomTemplate,
-                    existingFields = selectedCustomFields,
-                    onBack = {
+                AppScreen.TEMPLATE_DETAIL -> {
+                    val template = selectedTemplate
+
+                    if (template != null) {
+                        TemplateDetailScreen(
+                            template = template,
+                            onBackClick = {
+                                currentScreen = AppScreen.TEMPLATE_LIBRARY
+                            },
+                            onEditClick = {
+                                if (template.isCustom) {
+                                    currentScreen = AppScreen.CUSTOM_TEMPLATE_BUILDER
+                                }
+                            },
+                            onDeleteClick = {
+                                val customId = selectedCustomTemplate?.id
+
+                                if (customId != null) {
+                                    coroutineScope.launch {
+                                        customTemplateRepository.deleteTemplate(customId)
+
+                                        selectedCustomTemplate = null
+                                        selectedCustomFields = emptyList()
+                                        selectedTemplate = null
+
+                                        currentScreen = AppScreen.TEMPLATE_LIBRARY
+                                    }
+                                }
+                            }
+                        )
+                    } else {
                         currentScreen = AppScreen.TEMPLATE_LIBRARY
-                    },
-                    onSave = { template, fields ->
-                        coroutineScope.launch {
-                            customTemplateRepository.saveCompleteTemplate(
-                                template,
-                                fields
-                            )
+                    }
+                }
 
-                            selectedCustomTemplate = null
-                            selectedCustomFields = emptyList()
-                            selectedTemplate = null
-
+                AppScreen.CUSTOM_TEMPLATE_BUILDER -> {
+                    CustomTemplateBuilderScreen(
+                        existingTemplate = selectedCustomTemplate,
+                        existingFields = selectedCustomFields,
+                        onBack = {
                             currentScreen = AppScreen.TEMPLATE_LIBRARY
-                        }
-                    }
-                )
-            }
-
-            // DOCUMENT ENGINE
-
-            AppScreen.DOCUMENTS -> {
-                val project = selectedProject
-
-                if (project != null) {
-                    DocumentScreen(
-                        projectName = project.name,
-                        documents = documents,
-                        onBackClick = {
-                            currentScreen = AppScreen.WORKSPACE
                         },
-                        onCreateDocument = {
-                            newDocumentTitle = ""
-                            newDocumentTemplate = null
-                            currentScreen = AppScreen.CREATE_DOCUMENT
-                        },
-                        onDocumentClick = { document ->
-                            openExistingDocument(document)
-                        },
-                        onDeleteDocument = { documentId ->
+                        onSave = { template, fields ->
                             coroutineScope.launch {
-                                documentRepository.deleteDocument(documentId)
+                                customTemplateRepository.saveCompleteTemplate(
+                                    template,
+                                    fields
+                                )
+
+                                selectedCustomTemplate = null
+                                selectedCustomFields = emptyList()
+                                selectedTemplate = null
+
+                                currentScreen = AppScreen.TEMPLATE_LIBRARY
                             }
                         }
                     )
                 }
+
+                // DOCUMENT ENGINE
+
+                AppScreen.DOCUMENTS -> {
+                    val project = selectedProject
+
+                    if (project != null) {
+                        DocumentScreen(
+                            projectName = project.name,
+                            documents = documents,
+                            onBackClick = {
+                                currentScreen = AppScreen.WORKSPACE
+                            },
+                            onCreateDocument = {
+                                newDocumentTitle = ""
+                                newDocumentTemplate = null
+                                currentScreen = AppScreen.CREATE_DOCUMENT
+                            },
+                            onDocumentClick = { document ->
+                                openExistingDocument(document)
+                            },
+                            onDeleteDocument = { documentId ->
+                                coroutineScope.launch {
+                                    documentRepository.deleteDocument(documentId)
+                                }
+                            }
+                        )
+                    }
+                }
+
+                AppScreen.CREATE_DOCUMENT -> {
+                    CreateDocumentScreen(
+                        templates = libraryTemplates,
+                        title = newDocumentTitle,
+                        selectedTemplate = newDocumentTemplate,
+                        onTitleChange = {
+                            newDocumentTitle = it
+                        },
+                        onTemplateSelected = {
+                            newDocumentTemplate = it
+                        },
+                        onBackClick = {
+                            currentScreen = AppScreen.DOCUMENTS
+                        },
+                        onContinue = { title, template ->
+                            prepareNewDocument(title, template)
+                        }
+                    )
+                }
+
+                AppScreen.DOCUMENT_EDITOR -> {
+                    val template = documentTemplate
+
+                    if (template != null) {
+
+                        DocumentEditorScreen(
+                            documentTitle = documentTitle,
+                            template = template,
+                            initialValues = editorValues,
+                            onBackClick = {
+                                currentScreen = if (selectedDocument == null) {
+                                    AppScreen.CREATE_DOCUMENT
+                                } else {
+                                    AppScreen.DOCUMENTS
+                                }
+                            },
+                            onPreview = { values ->
+
+                                editorValues = values
+
+                                previewFields = template.fields.map { field ->
+                                    DocumentPreviewField(
+                                        label = field.label,
+                                        value = values[field.id].orEmpty()
+                                    )
+                                }
+
+                                currentScreen = AppScreen.DOCUMENT_PREVIEW
+                            },
+                            onSave = { values ->
+                                saveDocument(values)
+                            }
+                        )
+                    }
+                }
+
+                AppScreen.DOCUMENT_PREVIEW -> {
+                    val template = documentTemplate
+
+                    if (template != null) {
+
+                        DocumentPreviewScreen(
+                            title = documentTitle,
+                            templateName = template.name,
+                            fields = previewFields,
+                            onBackClick = {
+                                currentScreen = AppScreen.DOCUMENT_EDITOR
+                            },
+                            onExportMarkdown = {
+
+                                markdownToExport = DocumentMarkdownExporter.generate(
+                                    title = documentTitle,
+                                    templateName = template.name,
+                                    fields = previewFields
+                                )
+
+                                val fileName = documentTitle
+                                    .replace(Regex("[\\\\/:*?\"<>|]"), "_")
+                                    .ifBlank { "RP_Document" }
+
+                                exportLauncher.launch("$fileName.md")
+                            }
+                        )
+                    }
+                }
             }
 
-            AppScreen.CREATE_DOCUMENT -> {
-                CreateDocumentScreen(
-                    templates = libraryTemplates,
-                    title = newDocumentTitle,
-                    selectedTemplate = newDocumentTemplate,
-                    onTitleChange = {
-                        newDocumentTitle = it
-                    },
-                    onTemplateSelected = {
-                        newDocumentTemplate = it
-                    },
-                    onBackClick = {
-                        currentScreen = AppScreen.DOCUMENTS
-                    },
-                    onContinue = { title, template ->
-                        prepareNewDocument(title, template)
+            if (exportDialogMessage != null) {
+                ExportResultDialog(
+                    message = exportDialogMessage!!,
+                    isError = exportDialogIsError,
+                    onDismiss = {
+                        exportDialogMessage = null
                     }
                 )
-            }
-
-            AppScreen.DOCUMENT_EDITOR -> {
-                val template = documentTemplate
-
-                if (template != null) {
-
-                    DocumentEditorScreen(
-                        documentTitle = documentTitle,
-                        template = template,
-                        initialValues = editorValues,
-                        onBackClick = {
-                            currentScreen = if (selectedDocument == null) {
-                                AppScreen.CREATE_DOCUMENT
-                            } else {
-                                AppScreen.DOCUMENTS
-                            }
-                        },
-                        onPreview = { values ->
-
-                            editorValues = values
-
-                            previewFields = template.fields.map { field ->
-                                DocumentPreviewField(
-                                    label = field.label,
-                                    value = values[field.id].orEmpty()
-                                )
-                            }
-
-                            currentScreen = AppScreen.DOCUMENT_PREVIEW
-                        },
-                        onSave = { values ->
-                            saveDocument(values)
-                        }
-                    )
-                }
-            }
-
-            AppScreen.DOCUMENT_PREVIEW -> {
-                val template = documentTemplate
-
-                if (template != null) {
-
-                    DocumentPreviewScreen(
-                        title = documentTitle,
-                        templateName = template.name,
-                        fields = previewFields,
-                        onBackClick = {
-                            currentScreen = AppScreen.DOCUMENT_EDITOR
-                        },
-                        onExportMarkdown = {
-
-                            markdownToExport = DocumentMarkdownExporter.generate(
-                                title = documentTitle,
-                                templateName = template.name,
-                                fields = previewFields
-                            )
-
-                            val fileName = documentTitle
-                                .replace(Regex("[\\\\/:*?\"<>|]"), "_")
-                                .ifBlank { "RP_Document" }
-
-                            exportLauncher.launch("$fileName.md")
-                        }
-                    )
-                }
             }
         }
     }
