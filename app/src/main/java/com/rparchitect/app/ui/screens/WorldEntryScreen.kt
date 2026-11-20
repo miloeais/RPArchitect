@@ -10,16 +10,11 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPWorldEntry
-
-private val EntryBackground = Color(0xFF101116)
-private val EntryCard = Color(0xFF1B1D26)
-private val EntryAccent = Color(0xFF9B8CFF)
-private val EntrySecondary = Color(0xFF9A9BA8)
+import com.rparchitect.app.ui.theme.RPArchitectColors
 
 @Composable
 fun WorldEntryScreen(
@@ -28,7 +23,8 @@ fun WorldEntryScreen(
     onBackClick: () -> Unit,
     onCreateEntry: () -> Unit,
     onEditEntry: (RPWorldEntry) -> Unit,
-    onDeleteEntry: (Long) -> Unit
+    onDeleteEntry: (Long) -> Unit,
+    onExportEntry: (RPWorldEntry, Boolean) -> Unit
 ) {
     var menuEntry by remember {
         mutableStateOf<RPWorldEntry?>(null)
@@ -98,25 +94,28 @@ fun WorldEntryScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(EntryBackground)
+            .background(RPArchitectColors.Background)
             .padding(20.dp)
     ) {
         TextButton(onClick = onBackClick) {
-            Text("‹ Workspace", color = EntryAccent)
+            Text(
+                "‹ Workspace",
+                color = RPArchitectColors.PrimaryText
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             "Locations & Factions",
-            color = Color.White,
+            color = RPArchitectColors.PrimaryText,
             fontSize = 25.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
             projectName,
-            color = EntrySecondary,
+            color = RPArchitectColors.SecondaryText,
             fontSize = 12.sp
         )
 
@@ -131,7 +130,7 @@ fun WorldEntryScreen(
             ) {
                 Text(
                     "WORLD DIRECTORY",
-                    color = EntrySecondary,
+                    color = RPArchitectColors.SecondaryText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp
@@ -139,7 +138,7 @@ fun WorldEntryScreen(
 
                 Text(
                     "${entries.size} records",
-                    color = EntrySecondary,
+                    color = RPArchitectColors.SecondaryText,
                     fontSize = 11.sp
                 )
             }
@@ -147,11 +146,12 @@ fun WorldEntryScreen(
             Button(
                 onClick = onCreateEntry,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = EntryAccent
+                    containerColor = RPArchitectColors.IconBackground,
+                    contentColor = RPArchitectColors.PrimaryText
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("+ New", color = Color.Black)
+                Text("+ New")
             }
         }
 
@@ -167,7 +167,7 @@ fun WorldEntryScreen(
                 ) {
                     Text(
                         "⌖",
-                        color = EntryAccent,
+                        color = RPArchitectColors.SecondaryText,
                         fontSize = 48.sp
                     )
 
@@ -175,7 +175,7 @@ fun WorldEntryScreen(
 
                     Text(
                         "No records yet",
-                        color = Color.White,
+                        color = RPArchitectColors.PrimaryText,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -184,7 +184,7 @@ fun WorldEntryScreen(
 
                     Text(
                         "Create locations and organizations for your world.",
-                        color = EntrySecondary,
+                        color = RPArchitectColors.SecondaryText,
                         fontSize = 12.sp
                     )
                 }
@@ -201,13 +201,16 @@ fun WorldEntryScreen(
                     val hasChildren =
                         entriesByParent[entry.id].orEmpty().isNotEmpty()
 
+                    val isRoot = entry.parentId == null ||
+                        entry.parentId !in validIds
+
                     Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(start = (depth * 18).dp),
                         shape = RoundedCornerShape(15.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = EntryCard
+                            containerColor = RPArchitectColors.Surface
                         )
                     ) {
                         Row(
@@ -237,7 +240,7 @@ fun WorldEntryScreen(
                                         } else {
                                             "▶"
                                         },
-                                        color = EntryAccent,
+                                        color = RPArchitectColors.SecondaryText,
                                         fontSize = 12.sp
                                     )
                                 }
@@ -254,7 +257,7 @@ fun WorldEntryScreen(
                             ) {
                                 Text(
                                     entry.name,
-                                    color = Color.White,
+                                    color = RPArchitectColors.PrimaryText,
                                     fontSize = 15.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -263,7 +266,7 @@ fun WorldEntryScreen(
 
                                 Text(
                                     entry.type,
-                                    color = EntryAccent,
+                                    color = RPArchitectColors.SecondaryText,
                                     fontSize = 11.sp
                                 )
 
@@ -275,7 +278,7 @@ fun WorldEntryScreen(
 
                                         Text(
                                             "Under: $parentName",
-                                            color = EntrySecondary,
+                                            color = RPArchitectColors.SecondaryText,
                                             fontSize = 10.sp
                                         )
                                     }
@@ -288,7 +291,7 @@ fun WorldEntryScreen(
 
                                     Text(
                                         entry.description.take(100),
-                                        color = EntrySecondary,
+                                        color = RPArchitectColors.SecondaryText,
                                         fontSize = 12.sp,
                                         lineHeight = 18.sp
                                     )
@@ -297,7 +300,7 @@ fun WorldEntryScreen(
                                 if (hasChildren) {
                                     Text(
                                         "${entriesByParent[entry.id].orEmpty().size} sub-records",
-                                        color = EntrySecondary,
+                                        color = RPArchitectColors.SecondaryText,
                                         fontSize = 10.sp
                                     )
                                 }
@@ -311,7 +314,7 @@ fun WorldEntryScreen(
                                 ) {
                                     Text(
                                         "⋮",
-                                        color = Color.White,
+                                        color = RPArchitectColors.PrimaryText,
                                         fontSize = 24.sp
                                     )
                                 }
@@ -320,21 +323,68 @@ fun WorldEntryScreen(
                                     expanded = menuEntry?.id == entry.id,
                                     onDismissRequest = {
                                         menuEntry = null
-                                    }
+                                    },
+                                    containerColor = RPArchitectColors.Surface
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = {
+                                            Text(
+                                                "Edit",
+                                                color = RPArchitectColors.PrimaryText
+                                            )
+                                        },
                                         onClick = {
                                             menuEntry = null
                                             onEditEntry(entry)
                                         }
                                     )
 
+                                    if (isRoot) {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    "Export Root Only",
+                                                    color = RPArchitectColors.PrimaryText
+                                                )
+                                            },
+                                            onClick = {
+                                                menuEntry = null
+                                                onExportEntry(entry, false)
+                                            }
+                                        )
+
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    "Export Root + Sub",
+                                                    color = RPArchitectColors.PrimaryText
+                                                )
+                                            },
+                                            onClick = {
+                                                menuEntry = null
+                                                onExportEntry(entry, true)
+                                            }
+                                        )
+                                    } else {
+                                        DropdownMenuItem(
+                                            text = {
+                                                Text(
+                                                    "Export This Sub",
+                                                    color = RPArchitectColors.PrimaryText
+                                                )
+                                            },
+                                            onClick = {
+                                                menuEntry = null
+                                                onExportEntry(entry, false)
+                                            }
+                                        )
+                                    }
+
                                     DropdownMenuItem(
                                         text = {
                                             Text(
                                                 "Delete",
-                                                color = Color(0xFFE57373)
+                                                color = RPArchitectColors.Error
                                             )
                                         },
                                         onClick = {
@@ -357,11 +407,15 @@ fun WorldEntryScreen(
                 entryToDelete = null
             },
             title = {
-                Text("Delete Record?")
+                Text(
+                    "Delete Record?",
+                    color = RPArchitectColors.PrimaryText
+                )
             },
             text = {
                 Text(
-                    "Are you sure you want to delete \"${entry.name}\"?"
+                    "Are you sure you want to delete \"${entry.name}\"?",
+                    color = RPArchitectColors.SecondaryText
                 )
             },
             confirmButton = {
@@ -374,7 +428,7 @@ fun WorldEntryScreen(
                 ) {
                     Text(
                         "Delete",
-                        color = Color(0xFFE57373)
+                        color = RPArchitectColors.Error
                     )
                 }
             },
@@ -384,9 +438,13 @@ fun WorldEntryScreen(
                         entryToDelete = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        "Cancel",
+                        color = RPArchitectColors.SecondaryText
+                    )
                 }
-            }
+            },
+            containerColor = RPArchitectColors.Surface
         )
     }
 }
