@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -9,16 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPWorldLore
-
-private val LoreBackground = Color(0xFF101116)
-private val LoreCard = Color(0xFF1B1D26)
-private val LoreAccent = Color(0xFF9B8CFF)
-private val LoreSecondary = Color(0xFF9A9BA8)
+import com.rparchitect.app.ui.theme.RPArchitectColors
+import com.rparchitect.app.ui.components.ExportAllButton
 
 @Composable
 fun WorldLoreScreen(
@@ -27,7 +24,9 @@ fun WorldLoreScreen(
     onBackClick: () -> Unit,
     onCreateLore: () -> Unit,
     onEditLore: (RPWorldLore) -> Unit,
-    onDeleteLore: (Long) -> Unit
+    onDeleteLore: (Long) -> Unit,
+    onExportLore: (RPWorldLore) -> Unit,
+    onExportAllLores: () -> Unit
 ) {
     var menuLore by remember {
         mutableStateOf<RPWorldLore?>(null)
@@ -40,25 +39,28 @@ fun WorldLoreScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(LoreBackground)
+            .background(RPArchitectColors.Background)
             .padding(20.dp)
     ) {
         TextButton(onClick = onBackClick) {
-            Text("‹ Workspace", color = LoreAccent)
+            Text(
+                "‹ Workspace",
+                color = RPArchitectColors.PrimaryText
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             "World Lore",
-            color = Color.White,
+            color = RPArchitectColors.PrimaryText,
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
             projectName,
-            color = LoreSecondary,
+            color = RPArchitectColors.SecondaryText,
             fontSize = 12.sp
         )
 
@@ -71,7 +73,7 @@ fun WorldLoreScreen(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "LORE LIBRARY",
-                    color = LoreSecondary,
+                    color = RPArchitectColors.SecondaryText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp
@@ -79,7 +81,7 @@ fun WorldLoreScreen(
 
                 Text(
                     "${worldLores.size} documents",
-                    color = LoreSecondary,
+                    color = RPArchitectColors.SecondaryText,
                     fontSize = 11.sp
                 )
             }
@@ -87,13 +89,22 @@ fun WorldLoreScreen(
             Button(
                 onClick = onCreateLore,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = LoreAccent
+                    containerColor = RPArchitectColors.IconBackground,
+                    contentColor = RPArchitectColors.PrimaryText
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("+ New", color = Color.Black)
+                Text("+ New")
             }
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ExportAllButton(
+            text = "Export All World Lore",
+            enabled = worldLores.isNotEmpty(),
+            onClick = onExportAllLores
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -107,7 +118,7 @@ fun WorldLoreScreen(
                 ) {
                     Text(
                         "✧",
-                        color = LoreAccent,
+                        color = RPArchitectColors.SecondaryText,
                         fontSize = 48.sp
                     )
 
@@ -115,7 +126,7 @@ fun WorldLoreScreen(
 
                     Text(
                         "No world lore yet",
-                        color = Color.White,
+                        color = RPArchitectColors.PrimaryText,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -124,7 +135,7 @@ fun WorldLoreScreen(
 
                     Text(
                         "Build the history and rules of your world.",
-                        color = LoreSecondary,
+                        color = RPArchitectColors.SecondaryText,
                         fontSize = 12.sp
                     )
                 }
@@ -142,7 +153,7 @@ fun WorldLoreScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(15.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = LoreCard
+                            containerColor = RPArchitectColors.Surface
                         )
                     ) {
                         Row(
@@ -158,7 +169,7 @@ fun WorldLoreScreen(
                             ) {
                                 Text(
                                     lore.title,
-                                    color = Color.White,
+                                    color = RPArchitectColors.PrimaryText,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -167,9 +178,11 @@ fun WorldLoreScreen(
 
                                 Text(
                                     lore.history
-                                        .ifBlank { "No history description" }
+                                        .ifBlank {
+                                            "No history description"
+                                        }
                                         .take(100),
-                                    color = LoreSecondary,
+                                    color = RPArchitectColors.SecondaryText,
                                     fontSize = 12.sp,
                                     lineHeight = 18.sp
                                 )
@@ -183,7 +196,7 @@ fun WorldLoreScreen(
                                 ) {
                                     Text(
                                         "⋮",
-                                        color = Color.White,
+                                        color = RPArchitectColors.PrimaryText,
                                         fontSize = 24.sp
                                     )
                                 }
@@ -192,10 +205,16 @@ fun WorldLoreScreen(
                                     expanded = menuLore?.id == lore.id,
                                     onDismissRequest = {
                                         menuLore = null
-                                    }
+                                    },
+                                    containerColor = RPArchitectColors.Surface
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = {
+                                            Text(
+                                                "Edit",
+                                                color = RPArchitectColors.PrimaryText
+                                            )
+                                        },
                                         onClick = {
                                             menuLore = null
                                             onEditLore(lore)
@@ -205,8 +224,21 @@ fun WorldLoreScreen(
                                     DropdownMenuItem(
                                         text = {
                                             Text(
+                                                "Export Markdown",
+                                                color = RPArchitectColors.PrimaryText
+                                            )
+                                        },
+                                        onClick = {
+                                            menuLore = null
+                                            onExportLore(lore)
+                                        }
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
                                                 "Delete",
-                                                color = Color(0xFFE57373)
+                                                color = RPArchitectColors.Error
                                             )
                                         },
                                         onClick = {
@@ -229,11 +261,15 @@ fun WorldLoreScreen(
                 loreToDelete = null
             },
             title = {
-                Text("Delete World Lore?")
+                Text(
+                    "Delete World Lore?",
+                    color = RPArchitectColors.PrimaryText
+                )
             },
             text = {
                 Text(
-                    "Are you sure you want to delete \"${lore.title}\"?"
+                    "Are you sure you want to delete \"${lore.title}\"?",
+                    color = RPArchitectColors.SecondaryText
                 )
             },
             confirmButton = {
@@ -245,7 +281,7 @@ fun WorldLoreScreen(
                 ) {
                     Text(
                         "Delete",
-                        color = Color(0xFFE57373)
+                        color = RPArchitectColors.Error
                     )
                 }
             },
@@ -255,9 +291,13 @@ fun WorldLoreScreen(
                         loreToDelete = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        "Cancel",
+                        color = RPArchitectColors.SecondaryText
+                    )
                 }
-            }
+            },
+            containerColor = RPArchitectColors.Surface
         )
     }
 }
