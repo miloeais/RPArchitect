@@ -19,7 +19,9 @@ object ExportCoordinator {
         characters: List<RPCharacter> = emptyList(),
         worldLores: List<RPWorldLore> = emptyList(),
         worldEntries: List<RPWorldEntry> = emptyList(),
-        documents: List<RPDocument> = emptyList(),
+        loadProjectDocuments: suspend (Long) -> List<RPDocument> = {
+            emptyList()
+        },
         loadDocumentFields: suspend (RPDocument) -> List<RPDocumentField> = {
             emptyList()
         }
@@ -92,9 +94,7 @@ object ExportCoordinator {
                     worldEntries = worldEntries.filter {
                         it.projectId == request.project.id
                     },
-                    documents = documents.filter {
-                        it.projectId == request.project.id
-                    },
+                    loadProjectDocuments = loadProjectDocuments,
                     loadDocumentFields = loadDocumentFields
                 )
             }
