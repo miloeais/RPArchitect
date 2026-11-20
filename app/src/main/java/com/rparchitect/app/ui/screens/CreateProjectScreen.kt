@@ -13,10 +13,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val CreateBackground = Color(0xFF101116)
-private val CreateCard = Color(0xFF1B1D26)
-private val CreateAccent = Color(0xFF9B8CFF)
-private val CreateSecondary = Color(0xFF9A9BA8)
+private val CreateBackground = Color(0xFF08090B)
+private val CreateCard = Color(0xFF24262B)
+private val CreateAccent = Color(0xFFFFFFFF)
+private val CreateSecondary = Color(0xFFA0A2A8)
 
 private val genreOptions = listOf(
     "Fantasy",
