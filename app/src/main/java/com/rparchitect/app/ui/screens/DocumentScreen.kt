@@ -10,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rparchitect.app.data.model.RPDocument
+import com.rparchitect.app.ui.theme.RPArchitectColors
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -25,21 +26,33 @@ fun DocumentScreen(
     onDeleteDocument: (String) -> Unit
 ) {
     Scaffold(
+        containerColor = RPArchitectColors.Background,
         topBar = {
             TopAppBar(
                 title = {
-                    Text("Documents")
+                    Text(
+                        "Documents",
+                        color = RPArchitectColors.PrimaryText
+                    )
                 },
                 navigationIcon = {
                     TextButton(onClick = onBackClick) {
-                        Text("Back")
+                        Text(
+                            "Back",
+                            color = RPArchitectColors.PrimaryText
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = RPArchitectColors.Background
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
-                onClick = onCreateDocument
+                onClick = onCreateDocument,
+                containerColor = RPArchitectColors.IconBackground,
+                contentColor = RPArchitectColors.PrimaryText
             ) {
                 Text("+")
             }
@@ -55,7 +68,8 @@ fun DocumentScreen(
 
             Text(
                 text = projectName,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
+                color = RPArchitectColors.PrimaryText
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -63,7 +77,8 @@ fun DocumentScreen(
             if (documents.isEmpty()) {
                 Text(
                     text = "No documents yet. Create your first document.",
-                    style = MaterialTheme.typography.bodyMedium
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = RPArchitectColors.SecondaryText
                 )
             } else {
                 LazyColumn(
@@ -79,7 +94,10 @@ fun DocumentScreen(
                                 .fillMaxWidth()
                                 .clickable {
                                     onDocumentClick(document)
-                                }
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = RPArchitectColors.Surface
+                            )
                         ) {
                             Column(
                                 modifier = Modifier
@@ -88,14 +106,16 @@ fun DocumentScreen(
                             ) {
                                 Text(
                                     text = document.title,
-                                    style = MaterialTheme.typography.titleMedium
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = RPArchitectColors.PrimaryText
                                 )
 
                                 Spacer(modifier = Modifier.height(4.dp))
 
                                 Text(
                                     text = document.templateName,
-                                    style = MaterialTheme.typography.bodyMedium
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = RPArchitectColors.SecondaryText
                                 )
 
                                 Spacer(modifier = Modifier.height(4.dp))
@@ -104,7 +124,8 @@ fun DocumentScreen(
                                     text = "Updated: ${
                                         formatDocumentDate(document.updatedAt)
                                     }",
-                                    style = MaterialTheme.typography.bodySmall
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = RPArchitectColors.SecondaryText
                                 )
 
                                 Spacer(modifier = Modifier.height(8.dp))
@@ -114,7 +135,10 @@ fun DocumentScreen(
                                         onDeleteDocument(document.id)
                                     }
                                 ) {
-                                    Text("Delete")
+                                    Text(
+                                        "Delete",
+                                        color = RPArchitectColors.Error
+                                    )
                                 }
                             }
                         }
