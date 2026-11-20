@@ -14,10 +14,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPProject
 
-private val EditBackground = Color(0xFF101116)
-private val EditCard = Color(0xFF1B1D26)
-private val EditAccent = Color(0xFF9B8CFF)
-private val EditSecondary = Color(0xFF9A9BA8)
+private val EditBackground = Color(0xFF08090B)
+private val EditCard = Color(0xFF24262B)
+private val EditAccent = Color(0xFFFFFFFF)
+private val EditSecondary = Color(0xFFA0A2A8)
 
 private val editGenreOptions = listOf(
     "Fantasy",
