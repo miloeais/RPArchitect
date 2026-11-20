@@ -19,7 +19,7 @@ object ProjectExportService {
         characters: List<RPCharacter>,
         worldLores: List<RPWorldLore>,
         worldEntries: List<RPWorldEntry>,
-        documents: List<RPDocument>,
+        loadProjectDocuments: suspend (Long) -> List<RPDocument>,
         loadDocumentFields: suspend (RPDocument) -> List<RPDocumentField>
     ): Int {
 
@@ -62,9 +62,7 @@ object ProjectExportService {
         roots.forEach { root ->
             writeFile(
                 "Location_Root_${root.id}_${root.name}",
-                RPMarkdownExporter.generateWorldEntry(
-                    entry = root
-                )
+                RPMarkdownExporter.generateWorldEntry(root)
             )
 
             writeFile(
@@ -78,15 +76,15 @@ object ProjectExportService {
         }
 
         worldEntries
-            .filter { entry -> entry.parentId != null }
+            .filter { it.parentId != null }
             .forEach { subEntry ->
                 writeFile(
                     "Location_Sub_${subEntry.id}_${subEntry.name}",
-                    RPMarkdownExporter.generateWorldEntry(
-                        entry = subEntry
-                    )
+                    RPMarkdownExporter.generateWorldEntry(subEntry)
                 )
             }
+
+        val documents = loadProjectDocuments(project.id)
 
         documents.forEach { document ->
             val fields = loadDocumentFields(document)
