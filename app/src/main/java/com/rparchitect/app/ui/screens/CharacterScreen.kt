@@ -1,3 +1,4 @@
+
 package com.rparchitect.app.ui.screens
 
 import androidx.compose.foundation.background
@@ -9,16 +10,12 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.rparchitect.app.data.model.RPCharacter
-
-private val CharacterBackground = Color(0xFF101116)
-private val CharacterCard = Color(0xFF1B1D26)
-private val CharacterAccent = Color(0xFF9B8CFF)
-private val CharacterSecondary = Color(0xFF9A9BA8)
+import com.rparchitect.app.ui.theme.RPArchitectColors
+import com.rparchitect.app.ui.components.ExportAllButton
 
 @Composable
 fun CharacterScreen(
@@ -27,7 +24,9 @@ fun CharacterScreen(
     onBackClick: () -> Unit,
     onCreateCharacter: () -> Unit,
     onEditCharacter: (RPCharacter) -> Unit,
-    onDeleteCharacter: (Long) -> Unit
+    onDeleteCharacter: (Long) -> Unit,
+    onExportCharacter: (RPCharacter) -> Unit,
+    onExportAllCharacters: () -> Unit
 ) {
     var menuCharacter by remember {
         mutableStateOf<RPCharacter?>(null)
@@ -40,25 +39,28 @@ fun CharacterScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(CharacterBackground)
+            .background(RPArchitectColors.Background)
             .padding(20.dp)
     ) {
         TextButton(onClick = onBackClick) {
-            Text("‹ Workspace", color = CharacterAccent)
+            Text(
+                "‹ Workspace",
+                color = RPArchitectColors.PrimaryText
+            )
         }
 
         Spacer(modifier = Modifier.height(24.dp))
 
         Text(
             "Characters",
-            color = Color.White,
+            color = RPArchitectColors.PrimaryText,
             fontSize = 26.sp,
             fontWeight = FontWeight.Bold
         )
 
         Text(
             projectName,
-            color = CharacterSecondary,
+            color = RPArchitectColors.SecondaryText,
             fontSize = 12.sp
         )
 
@@ -71,7 +73,7 @@ fun CharacterScreen(
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     "CHARACTER LIBRARY",
-                    color = CharacterSecondary,
+                    color = RPArchitectColors.SecondaryText,
                     fontSize = 11.sp,
                     fontWeight = FontWeight.Bold,
                     letterSpacing = 1.5.sp
@@ -79,7 +81,7 @@ fun CharacterScreen(
 
                 Text(
                     "${characters.size} characters",
-                    color = CharacterSecondary,
+                    color = RPArchitectColors.SecondaryText,
                     fontSize = 11.sp
                 )
             }
@@ -87,13 +89,22 @@ fun CharacterScreen(
             Button(
                 onClick = onCreateCharacter,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = CharacterAccent
+                    containerColor = RPArchitectColors.IconBackground,
+                    contentColor = RPArchitectColors.PrimaryText
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text("+ New", color = Color.Black)
+                Text("+ New")
             }
         }
+
+        Spacer(modifier = Modifier.height(10.dp))
+
+        ExportAllButton(
+            text = "Export All Characters",
+            enabled = characters.isNotEmpty(),
+            onClick = onExportAllCharacters
+        )
 
         Spacer(modifier = Modifier.height(20.dp))
 
@@ -107,7 +118,7 @@ fun CharacterScreen(
                 ) {
                     Text(
                         "♙",
-                        color = CharacterAccent,
+                        color = RPArchitectColors.SecondaryText,
                         fontSize = 48.sp
                     )
 
@@ -115,7 +126,7 @@ fun CharacterScreen(
 
                     Text(
                         "No characters yet",
-                        color = Color.White,
+                        color = RPArchitectColors.PrimaryText,
                         fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -124,7 +135,7 @@ fun CharacterScreen(
 
                     Text(
                         "Create characters for this world.",
-                        color = CharacterSecondary,
+                        color = RPArchitectColors.SecondaryText,
                         fontSize = 12.sp
                     )
                 }
@@ -142,7 +153,7 @@ fun CharacterScreen(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(15.dp),
                         colors = CardDefaults.cardColors(
-                            containerColor = CharacterCard
+                            containerColor = RPArchitectColors.Surface
                         )
                     ) {
                         Row(
@@ -158,7 +169,7 @@ fun CharacterScreen(
                             ) {
                                 Text(
                                     character.name,
-                                    color = Color.White,
+                                    color = RPArchitectColors.PrimaryText,
                                     fontSize = 16.sp,
                                     fontWeight = FontWeight.Bold
                                 )
@@ -167,21 +178,26 @@ fun CharacterScreen(
 
                                 Text(
                                     character.role,
-                                    color = CharacterAccent,
+                                    color = RPArchitectColors.SecondaryText,
                                     fontSize = 11.sp
                                 )
 
-                                if (character.age.isNotBlank() ||
+                                if (
+                                    character.age.isNotBlank() ||
                                     character.gender.isNotBlank()
                                 ) {
                                     Spacer(modifier = Modifier.height(5.dp))
 
                                     Text(
                                         listOf(
-                                            character.age.takeIf { it.isNotBlank() },
-                                            character.gender.takeIf { it.isNotBlank() }
+                                            character.age.takeIf {
+                                                it.isNotBlank()
+                                            },
+                                            character.gender.takeIf {
+                                                it.isNotBlank()
+                                            }
                                         ).filterNotNull().joinToString(" • "),
-                                        color = CharacterSecondary,
+                                        color = RPArchitectColors.SecondaryText,
                                         fontSize = 11.sp
                                     )
                                 }
@@ -195,7 +211,7 @@ fun CharacterScreen(
                                 ) {
                                     Text(
                                         "⋮",
-                                        color = Color.White,
+                                        color = RPArchitectColors.PrimaryText,
                                         fontSize = 24.sp
                                     )
                                 }
@@ -204,10 +220,16 @@ fun CharacterScreen(
                                     expanded = menuCharacter?.id == character.id,
                                     onDismissRequest = {
                                         menuCharacter = null
-                                    }
+                                    },
+                                    containerColor = RPArchitectColors.Surface
                                 ) {
                                     DropdownMenuItem(
-                                        text = { Text("Edit") },
+                                        text = {
+                                            Text(
+                                                "Edit",
+                                                color = RPArchitectColors.PrimaryText
+                                            )
+                                        },
                                         onClick = {
                                             menuCharacter = null
                                             onEditCharacter(character)
@@ -217,8 +239,21 @@ fun CharacterScreen(
                                     DropdownMenuItem(
                                         text = {
                                             Text(
+                                                "Export Markdown",
+                                                color = RPArchitectColors.PrimaryText
+                                            )
+                                        },
+                                        onClick = {
+                                            menuCharacter = null
+                                            onExportCharacter(character)
+                                        }
+                                    )
+
+                                    DropdownMenuItem(
+                                        text = {
+                                            Text(
                                                 "Delete",
-                                                color = Color(0xFFE57373)
+                                                color = RPArchitectColors.Error
                                             )
                                         },
                                         onClick = {
@@ -241,11 +276,15 @@ fun CharacterScreen(
                 characterToDelete = null
             },
             title = {
-                Text("Delete Character?")
+                Text(
+                    "Delete Character?",
+                    color = RPArchitectColors.PrimaryText
+                )
             },
             text = {
                 Text(
-                    "Are you sure you want to delete \"${character.name}\"?"
+                    "Are you sure you want to delete \"${character.name}\"?",
+                    color = RPArchitectColors.SecondaryText
                 )
             },
             confirmButton = {
@@ -257,7 +296,7 @@ fun CharacterScreen(
                 ) {
                     Text(
                         "Delete",
-                        color = Color(0xFFE57373)
+                        color = RPArchitectColors.Error
                     )
                 }
             },
@@ -267,9 +306,13 @@ fun CharacterScreen(
                         characterToDelete = null
                     }
                 ) {
-                    Text("Cancel")
+                    Text(
+                        "Cancel",
+                        color = RPArchitectColors.SecondaryText
+                    )
                 }
-            }
+            },
+            containerColor = RPArchitectColors.Surface
         )
     }
 }
