@@ -10,6 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.rparchitect.app.data.model.RPTemplate
 import com.rparchitect.app.data.model.TemplateFieldType
+import com.rparchitect.app.ui.theme.RPArchitectColors
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,17 +30,39 @@ fun DocumentEditorScreen(
         }
     }
 
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedTextColor = RPArchitectColors.PrimaryText,
+        unfocusedTextColor = RPArchitectColors.PrimaryText,
+        focusedBorderColor = RPArchitectColors.PrimaryText,
+        unfocusedBorderColor = RPArchitectColors.Outline,
+        focusedLabelColor = RPArchitectColors.PrimaryText,
+        unfocusedLabelColor = RPArchitectColors.SecondaryText,
+        cursorColor = RPArchitectColors.PrimaryText,
+        focusedPlaceholderColor = RPArchitectColors.SecondaryText,
+        unfocusedPlaceholderColor = RPArchitectColors.SecondaryText
+    )
+
     Scaffold(
+        containerColor = RPArchitectColors.Background,
         topBar = {
             TopAppBar(
                 title = {
-                    Text(documentTitle)
+                    Text(
+                        documentTitle,
+                        color = RPArchitectColors.PrimaryText
+                    )
                 },
                 navigationIcon = {
                     TextButton(onClick = onBackClick) {
-                        Text("Back")
+                        Text(
+                            "Back",
+                            color = RPArchitectColors.PrimaryText
+                        )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = RPArchitectColors.Background
+                )
             )
         }
     ) { padding ->
@@ -55,7 +78,8 @@ fun DocumentEditorScreen(
 
             Text(
                 text = template.name,
-                style = MaterialTheme.typography.titleLarge
+                style = MaterialTheme.typography.titleLarge,
+                color = RPArchitectColors.PrimaryText
             )
 
             template.fields.forEach { field ->
@@ -67,7 +91,8 @@ fun DocumentEditorScreen(
                     Text(
                         text = field.label +
                             if (field.required) " *" else "",
-                        style = MaterialTheme.typography.titleSmall
+                        style = MaterialTheme.typography.titleSmall,
+                        color = RPArchitectColors.PrimaryText
                     )
 
                     when (field.type) {
@@ -79,7 +104,8 @@ fun DocumentEditorScreen(
                                     values[field.id] = it
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                singleLine = true
+                                singleLine = true,
+                                colors = fieldColors
                             )
                         }
 
@@ -90,7 +116,8 @@ fun DocumentEditorScreen(
                                     values[field.id] = it
                                 },
                                 modifier = Modifier.fillMaxWidth(),
-                                minLines = 3
+                                minLines = 3,
+                                colors = fieldColors
                             )
                         }
 
@@ -109,7 +136,8 @@ fun DocumentEditorScreen(
                                 singleLine = true,
                                 placeholder = {
                                     Text("Enter number")
-                                }
+                                },
+                                colors = fieldColors
                             )
                         }
 
@@ -123,7 +151,8 @@ fun DocumentEditorScreen(
                                 singleLine = true,
                                 placeholder = {
                                     Text("DD/MM/YYYY")
-                                }
+                                },
+                                colors = fieldColors
                             )
                         }
 
@@ -153,19 +182,24 @@ fun DocumentEditorScreen(
                                     },
                                     placeholder = {
                                         Text("Select category")
-                                    }
+                                    },
+                                    colors = fieldColors
                                 )
 
                                 ExposedDropdownMenu(
                                     expanded = expanded,
                                     onDismissRequest = {
                                         expanded = false
-                                    }
+                                    },
+                                    containerColor = RPArchitectColors.Surface
                                 ) {
                                     field.options.forEach { option ->
                                         DropdownMenuItem(
                                             text = {
-                                                Text(option)
+                                                Text(
+                                                    option,
+                                                    color = RPArchitectColors.PrimaryText
+                                                )
                                             },
                                             onClick = {
                                                 values[field.id] = option
@@ -184,7 +218,11 @@ fun DocumentEditorScreen(
                 onClick = {
                     onPreview(values.toMap())
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    contentColor = RPArchitectColors.PrimaryText
+                ),
+                border = ButtonDefaults.outlinedButtonBorder
             ) {
                 Text("Preview Document")
             }
@@ -204,7 +242,13 @@ fun DocumentEditorScreen(
                     field.required &&
                         values[field.id].orEmpty().isBlank()
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = RPArchitectColors.IconBackground,
+                    contentColor = RPArchitectColors.PrimaryText,
+                    disabledContainerColor = RPArchitectColors.Surface,
+                    disabledContentColor = RPArchitectColors.SecondaryText
+                )
             ) {
                 Text("Save Document")
             }
