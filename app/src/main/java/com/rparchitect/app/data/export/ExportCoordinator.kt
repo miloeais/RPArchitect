@@ -29,29 +29,51 @@ object ExportCoordinator {
 
             is ExportRequest.CharacterRecord -> {
                 RecordExportService.exportCharacter(
-                    context = context,
-                    folderUri = folderUri,
-                    character = request.character
+                    context,
+                    folderUri,
+                    request.character
                 )
                 1
+            }
+
+            is ExportRequest.CharacterBulk -> {
+                request.characters.forEach { character ->
+                    RecordExportService.exportCharacter(
+                        context,
+                        folderUri,
+                        character
+                    )
+                }
+                request.characters.size
             }
 
             is ExportRequest.WorldLoreRecord -> {
                 RecordExportService.exportWorldLore(
-                    context = context,
-                    folderUri = folderUri,
-                    lore = request.lore
+                    context,
+                    folderUri,
+                    request.lore
                 )
                 1
             }
 
+            is ExportRequest.WorldLoreBulk -> {
+                request.worldLores.forEach { lore ->
+                    RecordExportService.exportWorldLore(
+                        context,
+                        folderUri,
+                        lore
+                    )
+                }
+                request.worldLores.size
+            }
+
             is ExportRequest.WorldEntryRecord -> {
                 RecordExportService.exportWorldEntry(
-                    context = context,
-                    folderUri = folderUri,
-                    entry = request.entry,
-                    allEntries = request.allEntries,
-                    includeChildren = request.includeChildren
+                    context,
+                    folderUri,
+                    request.entry,
+                    request.allEntries,
+                    request.includeChildren
                 )
                 1
             }
