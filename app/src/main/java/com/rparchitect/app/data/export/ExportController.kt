@@ -1,17 +1,10 @@
 
 package com.rparchitect.app.data.export
 
-import android.content.Context
 import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.platform.LocalContext
 import com.rparchitect.app.data.model.RPCharacter
 import com.rparchitect.app.data.model.RPWorldLore
@@ -27,7 +20,7 @@ fun ExportController(
     characters: List<RPCharacter>,
     worldLores: List<RPWorldLore>,
     worldEntries: List<RPWorldEntry>,
-    documents: List<RPDocument>,
+    loadProjectDocuments: suspend (Long) -> List<RPDocument>,
     loadDocumentFields: suspend (RPDocument) -> List<RPDocumentField>,
     onExportCompleted: (Int) -> Unit,
     onExportError: (String) -> Unit,
@@ -66,7 +59,7 @@ fun ExportController(
                                 characters = characters,
                                 worldLores = worldLores,
                                 worldEntries = worldEntries,
-                                documents = documents,
+                                loadProjectDocuments = loadProjectDocuments,
                                 loadDocumentFields = loadDocumentFields
                             )
                         }
