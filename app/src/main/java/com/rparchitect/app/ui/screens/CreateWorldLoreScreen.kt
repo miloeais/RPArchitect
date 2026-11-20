@@ -13,9 +13,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
-private val CreateLoreBackground = Color(0xFF101116)
-private val CreateLoreCard = Color(0xFF1B1D26)
-private val CreateLoreAccent = Color(0xFF9B8CFF)
+private val CreateLoreBackground = Color(0xFF08090B)
+private val CreateLoreCard = Color(0xFF24262B)
+private val CreateLoreAccent = Color(0xFFFFFFFF)
 private val CreateLoreSecondary = Color(0xFF9A9BA8)
 
 @Composable
