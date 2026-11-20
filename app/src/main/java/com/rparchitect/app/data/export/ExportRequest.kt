@@ -12,8 +12,16 @@ sealed class ExportRequest {
         val character: RPCharacter
     ) : ExportRequest()
 
+    data class CharacterBulk(
+        val characters: List<RPCharacter>
+    ) : ExportRequest()
+
     data class WorldLoreRecord(
         val lore: RPWorldLore
+    ) : ExportRequest()
+
+    data class WorldLoreBulk(
+        val worldLores: List<RPWorldLore>
     ) : ExportRequest()
 
     data class WorldEntryRecord(
