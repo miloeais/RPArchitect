@@ -20,9 +20,9 @@ private val EditCharacterAccent = Color(0xFFFFFFFF)
 private val EditCharacterSecondary = Color(0xFFA0A2A8)
 
 private val editCharacterRoles = listOf(
-    "Main Character - npc AI controlled",
+    "Main Character - npc ai controlled",
     "Main Character - user controlled",
-    "Supporting Character",
+    "Supporting Character - npc ai controlled",
     "Antagonist",
     "Protagonist",
     "Love Interest",
