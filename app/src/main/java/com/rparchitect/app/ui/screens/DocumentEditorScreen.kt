@@ -117,6 +117,7 @@ fun DocumentEditorScreen(
                                 },
                                 modifier = Modifier.fillMaxWidth(),
                                 minLines = 3,
+                                maxLines = 4,
                                 colors = fieldColors
                             )
                         }
