@@ -31,10 +31,12 @@ object RPMarkdownExporter {
             appendLine("**Role:** ${character.role.ifBlank { "Not specified" }}")
             appendLine("**Age:** ${character.age.ifBlank { "Not specified" }}")
             appendLine("**Gender:** ${character.gender.ifBlank { "Not specified" }}")
+            appendLine("**Occupation:** ${character.occupation}")
             appendLine()
             appendSection("Personality", character.personality)
             appendSection("Background", character.background)
             appendSection("Appearance", character.appearance)
+            appendSection("Relationship", character.relationship)
             appendSection("Notes", character.notes)
         }.trimEnd()
     }
