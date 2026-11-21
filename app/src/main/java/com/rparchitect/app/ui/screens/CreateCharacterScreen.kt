@@ -42,6 +42,7 @@ fun CreateCharacterScreen(
         personality: String,
         background: String,
         appearance: String,
+        relationship: String,
         notes: String
     ) -> Unit
 ) {
@@ -54,6 +55,7 @@ fun CreateCharacterScreen(
     var personality by remember { mutableStateOf("") }
     var background by remember { mutableStateOf("") }
     var appearance by remember { mutableStateOf("") }
+    var relationship by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
     var roleExpanded by remember { mutableStateOf(false) }
 
@@ -219,6 +221,19 @@ fun CreateCharacterScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        CharacterInputLabel("RELATIONSHIP")
+
+        OutlinedTextField(
+            value = relationship,
+            onValueChange = { relationship = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Relationship...") },
+            minLines = 4,
+            maxLines = 5
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
         CharacterInputLabel("NOTES")
 
         OutlinedTextField(
@@ -250,6 +265,7 @@ fun CreateCharacterScreen(
                         personality.trim(),
                         background.trim(),
                         appearance.trim(),
+                        relationship.trim(),
                         notes.trim()
                     )
                 }
