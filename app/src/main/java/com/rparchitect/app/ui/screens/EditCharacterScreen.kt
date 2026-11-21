@@ -20,7 +20,8 @@ private val EditCharacterAccent = Color(0xFFFFFFFF)
 private val EditCharacterSecondary = Color(0xFFA0A2A8)
 
 private val editCharacterRoles = listOf(
-    "Main Character",
+    "Main Character - npc AI controlled",
+    "Main Character - user controlled",
     "Supporting Character",
     "Antagonist",
     "Protagonist",
@@ -77,6 +78,10 @@ fun EditCharacterScreen(
         mutableStateOf(character.gender)
     }
 
+    var occupation by remember(occupation.id) {
+        mutableStateOf(character.occupation)
+    }
+
     var personality by remember(character.id) {
         mutableStateOf(character.personality)
     }
@@ -87,6 +92,10 @@ fun EditCharacterScreen(
 
     var appearance by remember(character.id) {
         mutableStateOf(character.appearance)
+    }
+
+    var relationship by remember(relationship.id) {
+        mutableStateOf(relationship.gender)
     }
 
     var notes by remember(character.id) {
@@ -208,6 +217,18 @@ fun EditCharacterScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        CharacterEditLabel("occupation")
+
+        OutlinedTextField(
+            value = occupation,
+            onValueChange = { occupation = it },
+            modifier = Modifier.fillMaxWidth(),
+            singleLine = true,
+            placeholder = { Text("Enter occupation") }
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
         CharacterEditLabel("PERSONALITY")
 
         OutlinedTextField(
@@ -244,6 +265,18 @@ fun EditCharacterScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
+        CharacterEditLabel("RELATIONSHIP")
+
+        OutlinedTextField(
+            value = relationship,
+            onValueChange = { relationship = it },
+            modifier = Modifier.fillMaxWidth(),
+            minLines = 4,
+            maxLines = 6
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
         CharacterEditLabel("NOTES")
 
         OutlinedTextField(
@@ -269,9 +302,11 @@ fun EditCharacterScreen(
                     finalRole,
                     age.trim(),
                     gender.trim(),
+                    occupation.trim(),
                     personality.trim(),
                     background.trim(),
                     appearance.trim(),
+                    relationship.trim(),
                     notes.trim()
                 )
             },
