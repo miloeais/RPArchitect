@@ -237,6 +237,7 @@ fun CreateWorldEntryScreen(
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
+                maxLines = 4
             )
 
             OutlinedTextField(
@@ -245,6 +246,7 @@ fun CreateWorldEntryScreen(
                 label = { Text("History") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
+                maxLines = 4
             )
 
             OutlinedTextField(
@@ -253,6 +255,7 @@ fun CreateWorldEntryScreen(
                 label = { Text("Government / Structure") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2
+                maxLines = 4
             )
 
             OutlinedTextField(
@@ -277,6 +280,7 @@ fun CreateWorldEntryScreen(
                 label = { Text("Territory / Area of Influence") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 2
+                maxLines = 4
             )
 
             OutlinedTextField(
@@ -285,6 +289,7 @@ fun CreateWorldEntryScreen(
                 label = { Text("Additional Notes") },
                 modifier = Modifier.fillMaxWidth(),
                 minLines = 3
+                maxLines = 4
             )
 
             Button(
