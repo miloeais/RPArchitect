@@ -32,6 +32,7 @@ data class RPCharacter(
     val personality: String,
     val background: String,
     val appearance: String,
+    val relationship: String,
     val notes: String,
     val createdAt: Long,
     val updatedAt: Long
