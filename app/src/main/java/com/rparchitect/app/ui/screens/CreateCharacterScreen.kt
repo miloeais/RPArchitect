@@ -173,6 +173,7 @@ fun CreateCharacterScreen(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Describe personality...") },
             minLines = 3
+            maxLines = 4
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -185,6 +186,7 @@ fun CreateCharacterScreen(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Character history and background...") },
             minLines = 4
+            maxLines = 5
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -197,6 +199,7 @@ fun CreateCharacterScreen(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Physical appearance...") },
             minLines = 3
+            maxLines = 4
         )
 
         Spacer(modifier = Modifier.height(18.dp))
@@ -209,6 +212,7 @@ fun CreateCharacterScreen(
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Additional notes...") },
             minLines = 3
+            maxLines = 4
         )
 
         Spacer(modifier = Modifier.height(30.dp))
