@@ -40,9 +40,11 @@ fun EditCharacterScreen(
         role: String,
         age: String,
         gender: String,
+        occupation: String,
         personality: String,
         background: String,
         appearance: String,
+        relationship: String,
         notes: String
     ) -> Unit
 ) {
@@ -78,7 +80,7 @@ fun EditCharacterScreen(
         mutableStateOf(character.gender)
     }
 
-    var occupation by remember(occupation.id) {
+    var occupation by remember(character.id) {
         mutableStateOf(character.occupation)
     }
 
@@ -94,7 +96,7 @@ fun EditCharacterScreen(
         mutableStateOf(character.appearance)
     }
 
-    var relationship by remember(relationship.id) {
+    var relationship by remember(character.id) {
         mutableStateOf(relationship.gender)
     }
 
@@ -217,7 +219,7 @@ fun EditCharacterScreen(
 
         Spacer(modifier = Modifier.height(18.dp))
 
-        CharacterEditLabel("occupation")
+        CharacterEditLabel("OCCUPATION")
 
         OutlinedTextField(
             value = occupation,
