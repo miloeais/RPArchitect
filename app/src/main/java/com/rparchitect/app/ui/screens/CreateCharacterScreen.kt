@@ -46,7 +46,7 @@ fun CreateCharacterScreen(
     ) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
-    var role by remember { mutableStateOf("Main Character") }
+    var role by remember { mutableStateOf("Main Character - npc ai controlled") }
     var customRole by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
@@ -187,7 +187,7 @@ fun CreateCharacterScreen(
             onValueChange = { personality = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Describe personality...") },
-            minLines = 3
+            minLines = 3,
             maxLines = 4
         )
 
@@ -200,7 +200,7 @@ fun CreateCharacterScreen(
             onValueChange = { background = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Character history and background...") },
-            minLines = 4
+            minLines = 4,
             maxLines = 5
         )
 
@@ -213,7 +213,7 @@ fun CreateCharacterScreen(
             onValueChange = { appearance = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Physical appearance...") },
-            minLines = 3
+            minLines = 3,
             maxLines = 4
         )
 
@@ -226,7 +226,7 @@ fun CreateCharacterScreen(
             onValueChange = { notes = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Additional notes...") },
-            minLines = 3
+            minLines = 3,
             maxLines = 4
         )
 
@@ -246,6 +246,7 @@ fun CreateCharacterScreen(
                         finalRole,
                         age.trim(),
                         gender.trim(),
+                        occupation.trim(),
                         personality.trim(),
                         background.trim(),
                         appearance.trim(),
