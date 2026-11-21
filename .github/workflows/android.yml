@@ -46,7 +46,7 @@ jobs:
           RELEASE_KEYSTORE_PASSWORD: ${{ secrets.RELEASE_KEYSTORE_PASSWORD }}
           RELEASE_KEY_PASSWORD: ${{ secrets.RELEASE_KEY_PASSWORD }}
         run: |
-          gradle --no-daemon assembleRelease
+          gradle --no-daemon assembleRelease  --stacktrace --info
 
       - name: Upload APK
         uses: actions/upload-artifact@v6
