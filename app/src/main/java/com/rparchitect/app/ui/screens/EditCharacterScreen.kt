@@ -97,7 +97,7 @@ fun EditCharacterScreen(
     }
 
     var relationship by remember(character.id) {
-        mutableStateOf(relationship.gender)
+        mutableStateOf(character.relationship)
     }
 
     var notes by remember(character.id) {
