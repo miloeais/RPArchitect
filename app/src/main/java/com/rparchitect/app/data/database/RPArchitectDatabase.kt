@@ -31,7 +31,7 @@ import com.rparchitect.app.data.model.RPWorldLore
         RPDocument::class,
         RPDocumentField::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class RPArchitectDatabase : RoomDatabase() {
