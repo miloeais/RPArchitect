@@ -281,51 +281,6 @@ fun RPArchitectApp() {
         )
     }
 
-    // PROJECT FUNCTIONS
-
-    fun createProject(
-        name: String,
-        description: String,
-        genre: String
-    ) {
-        val now = System.currentTimeMillis()
-
-        val project = RPProject(
-            id = now,
-            name = name,
-            description = description,
-            genre = genre,
-            createdAt = now,
-            updatedAt = now
-        )
-
-        coroutineScope.launch {
-            projectRepository.addProject(project)
-            currentScreen = AppScreen.PROJECTS
-        }
-    }
-
-    fun updateProject(
-        name: String,
-        description: String,
-        genre: String
-    ) {
-        val oldProject = selectedProject ?: return
-
-        val updatedProject = oldProject.copy(
-            name = name,
-            description = description,
-            genre = genre,
-            updatedAt = System.currentTimeMillis()
-        )
-
-        coroutineScope.launch {
-            projectRepository.updateProject(updatedProject)
-            selectedProject = updatedProject
-            currentScreen = AppScreen.PROJECTS
-        }
-    }
-
     // CHARACTER FUNCTIONS
 
     fun createCharacter(
@@ -777,7 +732,15 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.PROJECTS
                         },
                         onCreateClick = { name, description, genre ->
-                            createProject(name, description, genre)
+                            coroutineScope.launch {
+                                ProjectActions.createProject(
+                                    projectRepository,
+                                    name,
+                                    description,
+                                    genre
+                                )
+                                currentScreen = AppScreen.PROJECTS
+                            }
                         }
                     )
                 }
@@ -792,7 +755,20 @@ fun RPArchitectApp() {
                                 currentScreen = AppScreen.PROJECTS
                             },
                             onSaveClick = { name, description, genre ->
-                                updateProject(name, description, genre)
+                                val oldProject = selectedProject
+
+                                if (oldProject != null) {
+                                    coroutineScope.launch {
+                                        selectedProject = ProjectActions.updateProject(
+                                            projectRepository,
+                                            oldProject,
+                                            name,
+                                            description,
+                                            genre
+                                        )
+                                        currentScreen = AppScreen.PROJECTS
+                                    }
+                                }
                             }
                         )
                     }
