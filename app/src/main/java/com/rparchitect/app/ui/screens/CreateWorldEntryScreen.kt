@@ -236,7 +236,7 @@ fun CreateWorldEntryScreen(
                 onValueChange = { description = it },
                 label = { Text("Description") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
                 maxLines = 4
             )
 
@@ -245,7 +245,7 @@ fun CreateWorldEntryScreen(
                 onValueChange = { history = it },
                 label = { Text("History") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
                 maxLines = 4
             )
 
@@ -254,7 +254,7 @@ fun CreateWorldEntryScreen(
                 onValueChange = { government = it },
                 label = { Text("Government / Structure") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 2
+                minLines = 2,
                 maxLines = 4
             )
 
@@ -279,7 +279,7 @@ fun CreateWorldEntryScreen(
                 onValueChange = { territory = it },
                 label = { Text("Territory / Area of Influence") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 2
+                minLines = 2,
                 maxLines = 4
             )
 
@@ -288,7 +288,7 @@ fun CreateWorldEntryScreen(
                 onValueChange = { notes = it },
                 label = { Text("Additional Notes") },
                 modifier = Modifier.fillMaxWidth(),
-                minLines = 3
+                minLines = 3,
                 maxLines = 4
             )
 
