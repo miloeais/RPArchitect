@@ -214,7 +214,7 @@ fun EditCharacterScreen(
             value = personality,
             onValueChange = { personality = it },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3
+            minLines = 3,
             maxLines = 5
         )
 
@@ -226,7 +226,7 @@ fun EditCharacterScreen(
             value = background,
             onValueChange = { background = it },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 4
+            minLines = 4,
             maxLines = 5
         )
 
@@ -238,7 +238,7 @@ fun EditCharacterScreen(
             value = appearance,
             onValueChange = { appearance = it },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3
+            minLines = 3,
             maxLines = 5
         )
 
@@ -250,7 +250,7 @@ fun EditCharacterScreen(
             value = notes,
             onValueChange = { notes = it },
             modifier = Modifier.fillMaxWidth(),
-            minLines = 3
+            minLines = 3,
             maxLines = 5
         )
 
