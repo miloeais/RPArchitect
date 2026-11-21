@@ -28,6 +28,7 @@ data class RPCharacter(
     val role: String,
     val age: String,
     val gender: String,
+    val occupation: String,
     val personality: String,
     val background: String,
     val appearance: String,
