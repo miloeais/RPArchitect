@@ -333,9 +333,11 @@ fun RPArchitectApp() {
         role: String,
         age: String,
         gender: String,
+        occupation: String,
         personality: String,
         background: String,
         appearance: String,
+        relationship: String,
         notes: String
     ) {
         val project = selectedProject ?: return
@@ -348,9 +350,11 @@ fun RPArchitectApp() {
             role = role,
             age = age,
             gender = gender,
+            occupation = occupation,
             personality = personality,
             background = background,
             appearance = appearance,
+            relationship = relationship,
             notes = notes,
             createdAt = now,
             updatedAt = now
@@ -367,9 +371,11 @@ fun RPArchitectApp() {
         role: String,
         age: String,
         gender: String,
+        occupation: String,
         personality: String,
         background: String,
         appearance: String,
+        relationship: String,
         notes: String
     ) {
         val oldCharacter = selectedCharacter ?: return
@@ -379,9 +385,11 @@ fun RPArchitectApp() {
             role = role,
             age = age,
             gender = gender,
+            occupation = occupation,
             personality = personality,
             background = background,
             appearance = appearance,
+            relationship = relationship,
             notes = notes,
             updatedAt = System.currentTimeMillis()
         )
@@ -857,12 +865,12 @@ fun RPArchitectApp() {
                             currentScreen = AppScreen.CHARACTERS
                         },
                         onCreateClick = {
-                            name, role, age, gender,
-                            personality, background, appearance, notes ->
+                            name, role, age, gender, occupation,
+                            personality, background, appearance, relationship, notes ->
 
                             createCharacter(
-                                name, role, age, gender,
-                                personality, background, appearance, notes
+                                name, role, age, gender, occupation,
+                                personality, background, appearance, relationship, notes
                             )
                         }
                     )
@@ -878,12 +886,12 @@ fun RPArchitectApp() {
                                 currentScreen = AppScreen.CHARACTERS
                             },
                             onSaveClick = {
-                                name, role, age, gender,
-                                personality, background, appearance, notes ->
+                                name, role, age, gender, occupation,
+                                personality, background, appearance, relationship, notes ->
 
                                 updateCharacter(
-                                    name, role, age, gender,
-                                    personality, background, appearance, notes
+                                    name, role, age, gender, occupation,
+                                    personality, background, appearance, relationship, notes
                                 )
                             }
                         )
