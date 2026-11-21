@@ -139,7 +139,7 @@ fun ProjectManagerScreen(
                 ) { project ->
                     Card(
                         modifier = Modifier.fillMaxWidth(),
-                        shape = RoundedCornerShape(15.dp),
+                        shape = RoundedCornerShape(10.dp),
                         colors = CardDefaults.cardColors(
                             containerColor = RPArchitectColors.Surface
                         )
