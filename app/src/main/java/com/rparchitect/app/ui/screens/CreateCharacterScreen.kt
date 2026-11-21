@@ -19,8 +19,9 @@ private val CreateCharacterAccent = Color(0xFFFFFFFF)
 private val CreateCharacterSecondary = Color(0xFFA0A2A8)
 
 private val characterRoles = listOf(
-    "Main Character",
-    "Supporting Character",
+    "Main Character - npc ai controlled",
+    "Main Character - user controlled",
+    "Supporting Character - npc ai controlled",
     "Antagonist",
     "Protagonist",
     "Love Interest",
@@ -37,6 +38,7 @@ fun CreateCharacterScreen(
         role: String,
         age: String,
         gender: String,
+        occupation: String,
         personality: String,
         background: String,
         appearance: String,
@@ -48,6 +50,7 @@ fun CreateCharacterScreen(
     var customRole by remember { mutableStateOf("") }
     var age by remember { mutableStateOf("") }
     var gender by remember { mutableStateOf("") }
+    var occupation by remember { mutableStateOf("") }
     var personality by remember { mutableStateOf("") }
     var background by remember { mutableStateOf("") }
     var appearance by remember { mutableStateOf("") }
@@ -160,6 +163,18 @@ fun CreateCharacterScreen(
             onValueChange = { gender = it },
             modifier = Modifier.fillMaxWidth(),
             placeholder = { Text("Enter gender") },
+            singleLine = true
+        )
+
+        Spacer(modifier = Modifier.height(18.dp))
+
+        CharacterInputLabel("OCCUPATION")
+
+        OutlinedTextField(
+            value = occupation,
+            onValueChange = { occupation = it },
+            modifier = Modifier.fillMaxWidth(),
+            placeholder = { Text("Enter occupation") },
             singleLine = true
         )
 
